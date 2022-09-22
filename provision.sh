@@ -44,7 +44,7 @@ sudo mysql -u root << EOF
 	ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'yourpassword';
 	flush privileges;
 	show databases;
-	CREATE DATABASE IF NOT EXISTS twitter;
+	CREATE DATABASE IF NOT EXISTS weitter;
 EOF
 # fi
 
