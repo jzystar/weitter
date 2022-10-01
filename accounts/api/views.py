@@ -1,20 +1,19 @@
-from django.contrib.auth.models import User
-from rest_framework import viewsets
-from rest_framework import permissions
-from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 from accounts.api.serializers import (
-    UserSerializer,
     LoginSerializer,
-    SignupSerializer
+    SignupSerializer,
+    UserSerializer,
 )
 from django.contrib.auth import (
     login as django_login,
     logout as django_logout,
     authenticate as django_authenticate
 )
-
+from django.contrib.auth.models import User
+from rest_framework import permissions
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -39,7 +38,7 @@ class AccountViewSet(viewsets.ViewSet):
                 'message': 'Please check input.',
                 'errors': serializer.errors,
             }, status=400)
-        username = serializer.validated_data['username'].lower()
+        username = serializer.validated_data['username']
         password = serializer.validated_data['password']
 
         user = django_authenticate(username=username, password=password)
@@ -57,7 +56,10 @@ class AccountViewSet(viewsets.ViewSet):
 
     @action(methods=['GET'], detail=False)
     def login_status(self, request):
-        data = {'has_logged_in': request.user.is_authenticated}
+        data = {
+            'has_logged_in': request.user.is_authenticated,
+            'ip': request.META['REMOTE_ADDR']
+        }
         if request.user.is_authenticated:
             data['user'] = UserSerializer(request.user).data
         return Response(data)

@@ -13,7 +13,8 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
-        if not User.objects.filter(username=data['username'].lower()).exists():
+        data['username'] = data['username'].lower()
+        if not User.objects.filter(username=data['username']).exists():
             raise exceptions.ValidationError({
                 'username': 'User does not exist.'
             })
@@ -31,7 +32,9 @@ class SignupSerializer(serializers.ModelSerializer):
 
     # validate() will be called when is_valid is called
     def validate(self, data):
-        if User.objects.filter(username=data['username'].lower()).exists():
+        data['username'] = data['username'].lower()
+        data['email'] = data['email'].lower()
+        if User.objects.filter(username=data['username']).exists():
             raise exceptions.ValidationError({
                 'username': 'This username has been occupied.'
             })
