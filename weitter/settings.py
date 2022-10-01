@@ -38,10 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    #third party
     'rest_framework',
-    'accounts',
     "debug_toolbar",
+
+    # project apps
+    'accounts',
+    'weits',
 ]
 
 REST_FRAMEWORK = {

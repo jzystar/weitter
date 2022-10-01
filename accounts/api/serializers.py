@@ -38,7 +38,7 @@ class SignupSerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError({
                 'username': 'This username has been occupied.'
             })
-        if User.objects.filter(email=data['email'].lower()).exists():
+        if User.objects.filter(email=data['email']).exists():
             raise exceptions.ValidationError({
                 'email': 'This email address has been occupied.'
             })
