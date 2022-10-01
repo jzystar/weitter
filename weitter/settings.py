@@ -26,6 +26,7 @@ SECRET_KEY = '0_zl_(2cfrn075p)sqs-g8^vo6-aj5_@$a(fm_*8^rh$74)a2s'
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', '192.168.33.10', 'localhost']
+INTERNAL_IPS = ["10.0.2.2"]
 
 
 # Application definition
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'accounts',
+    "debug_toolbar",
 ]
 
 REST_FRAMEWORK = {
@@ -55,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'weitter.urls'
