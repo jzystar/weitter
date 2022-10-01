@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from accounts.api.views import AccountViewSet, UserViewSet
+from weits.api.views import WeitViewSet
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
@@ -21,6 +22,7 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'api/users', UserViewSet)
 router.register(r'api/accounts', AccountViewSet, basename='accounts')
+router.register(r'api/weits', WeitViewSet, basename='weits')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
