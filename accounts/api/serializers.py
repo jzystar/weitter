@@ -14,6 +14,10 @@ class UserSerializerForWeit(serializers.ModelSerializer):
         fields = ('id', 'username')
 
 
+class UserSerializerForFriendship(UserSerializerForWeit):
+    pass
+
+
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
