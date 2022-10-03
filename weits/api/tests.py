@@ -8,7 +8,7 @@ WEIT_CREATE_API = '/api/weits/'
 class WeitApiTests(TestCase):
 
     def setUp(self):
-        self.anonymous_client = APIClient()
+        #self.anonymous_client = APIClient()
 
         self.user1 = self.create_user('user1', 'user1@weitter.com')
         self.weits1 = [

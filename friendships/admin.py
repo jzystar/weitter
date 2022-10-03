@@ -6,11 +6,9 @@ from friendships.models import Friendship
 class FriendshipAdmin(admin.ModelAdmin):
     data_hierachy = 'created_at'
     list_display = (
-        'created_at',
         'id',
         'from_user',
         'to_user',
+        'created_at',
     )
-from django.contrib import admin
 
-# Register your models here.
