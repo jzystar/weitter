@@ -4,7 +4,7 @@ from weits.models import Weit
 
 
 class WeitSerializer(serializers.ModelSerializer):
-    #need to get not only user id but also user other info
+    # need to get not only user id but also user other info
     user = UserSerializerForWeit()
 
     class Meta:
@@ -17,10 +17,9 @@ class WeitSerializerForCreate(serializers.ModelSerializer):
 
     class Meta:
         model = Weit
-        fields = ('content', )
+        fields = ('content',)
 
     def create(self, validated_data):
         user = self.context['request'].user
         weit = Weit.objects.create(user=user, content=validated_data['content'])
         return weit
-

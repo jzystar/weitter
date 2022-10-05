@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from weits.models import Weit
 from weits.api.serializers import WeitSerializer, WeitSerializerForCreate
+from newsfeeds.services import NewsFeedServices
 
 
 class WeitViewSet(viewsets.GenericViewSet):
@@ -35,5 +36,5 @@ class WeitViewSet(viewsets.GenericViewSet):
                 'errors': serializer.errors,
             }, status=400)
         weit = serializer.save()
-
+        NewsFeedServices.fanout_to_followers(weit)
         return Response(WeitSerializer(weit).data, status=201)
