@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'weits',
     'friendships',
     'newsfeeds',
+    'comments',
 ]
 
 REST_FRAMEWORK = {

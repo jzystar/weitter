@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Friendship(models.Model):
     from_user = models.ForeignKey(
         User,

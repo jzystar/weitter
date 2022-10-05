@@ -5,6 +5,7 @@ from rest_framework import serializers
 from friendships.models import Friendship
 from django.contrib.auth.models import User
 
+
 class FollowerSerializer(serializers.ModelSerializer):
     user = UserSerializerForFriendship(source='from_user')
 
