@@ -14,6 +14,10 @@ class UserSerializerForWeit(serializers.ModelSerializer):
         fields = ('id', 'username')
 
 
+class UserSerializerForComment(UserSerializerForWeit):
+    pass
+
+
 class UserSerializerForFriendship(UserSerializerForWeit):
     pass
 
