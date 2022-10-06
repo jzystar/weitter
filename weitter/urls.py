@@ -14,12 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from accounts.api.views import AccountViewSet, UserViewSet
-from newsfeeds.api.views import NewsFeedViewSet
-from weits.api.views import WeitViewSet
+from comments.api.views import CommentViewSet
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework import routers
 from friendships.api.views import FriendshipViewSet
+from newsfeeds.api.views import NewsFeedViewSet
+from rest_framework import routers
+from weits.api.views import WeitViewSet
 
 router = routers.DefaultRouter()
 router.register(r'api/users', UserViewSet)
@@ -27,6 +28,7 @@ router.register(r'api/accounts', AccountViewSet, basename='accounts')
 router.register(r'api/weits', WeitViewSet, basename='weits')
 router.register(r'api/friendships', FriendshipViewSet, basename='friendships')
 router.register(r'api/newsfeeds', NewsFeedViewSet, basename='newsfeeds')
+router.register(r'api/comments', CommentViewSet, basename='comments')
 
 
 urlpatterns = [
