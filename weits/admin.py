@@ -6,7 +6,8 @@ from weits.models import Weit
 class WeitAdmin(admin.ModelAdmin):
     data_hierachy = 'created_at'
     list_display = (
-        'created_at',
+        'id',
         'user',
         'content',
+        'created_at',
     )
