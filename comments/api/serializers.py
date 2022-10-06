@@ -26,3 +26,14 @@ class CommentSerializerForCreate(serializers.ModelSerializer):
         if not Weit.objects.filter(id=weit_id).exists():
             raise ValidationError({'message': 'weit does not exist'})
         return data
+
+
+class CommentSerializerForUpdate(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('content',)
+
+    def update(self, instance, validated_data):
+        instance.content = validated_data['content']
+        instance.save()
+        return instance
