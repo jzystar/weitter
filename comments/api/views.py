@@ -13,6 +13,8 @@ from rest_framework.response import Response
 class CommentViewSet(viewsets.GenericViewSet):
     serializer_class = CommentSerializerForCreate
     queryset = Comment.objects.all()
+    # can add more fields for filter
+    filterset_fields = ('weit_id', )
 
     def get_permissions(self):
         if self.action == 'create':
@@ -20,6 +22,23 @@ class CommentViewSet(viewsets.GenericViewSet):
         if self.action in ['update', 'destroy']:
             return [IsAuthenticated(), IsObjectOwner()]
         return [AllowAny()]
+
+    def list(self, request, *args, **kwargs):
+        if 'weit_id' not in request.query_params:
+            return Response({
+                'message': 'missing weit_id in request',
+                'success': False,
+            }, status=status.HTTP_400_BAD_REQUEST)
+        # use filter for short code
+        qs = self.get_queryset()
+        comments = self.filter_queryset(qs).prefetch_related('user').order_by('created_at')
+        # weit_id = request.query_params['weit_id']
+        # comments = Comment.objects.filter(weit_id=weit_id)
+        serializer = CommentSerializer(comments, many=True)
+        return Response({
+            'comments': serializer.data,
+            'success': True,
+        }, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         data = {
@@ -55,5 +74,3 @@ class CommentViewSet(viewsets.GenericViewSet):
         comment = self.get_object()
         comment.delete()
         return Response({'success': True}, status=status.HTTP_200_OK)
-
-

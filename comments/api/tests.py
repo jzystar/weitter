@@ -101,5 +101,33 @@ class CommentApiTests(TestCase):
         self.assertNotEqual(comment.created_at, now)
         self.assertNotEqual(comment.updated_at, before_updated_at)
 
+    def test_list(self):
+        # not with weit_id
+        response = self.anonymous_client.get(COMMENT_URL)
+        self.assertEqual(response.status_code, 400)
 
+        # positive test
+        response = self.anonymous_client.get(COMMENT_URL, {
+            'weit_id': self.weit.id,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['comments']), 0)
+
+        self.create_comment(self.user1, self.weit, '1')
+        self.create_comment(self.user2, self.weit, '2')
+        self.create_comment(self.user2, self.create_weit(self.user2), '3')
+
+        response = self.anonymous_client.get(COMMENT_URL, {
+            'weit_id': self.weit.id,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['comments']), 2)
+        self.assertEqual(response.data['comments'][0]['content'], '1')
+        self.assertEqual(response.data['comments'][1]['content'], '2')
+        # test add user_id param
+        response = self.anonymous_client.get(COMMENT_URL, {
+            'weit_id': self.weit.id,
+            'user_id': self.user1.id,
+        })
+        self.assertEqual(len(response.data['comments']), 2)
 
