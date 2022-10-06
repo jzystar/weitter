@@ -8,6 +8,7 @@ from comments.models import Comment
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from utils.decorators import required_params
 
 
 class CommentViewSet(viewsets.GenericViewSet):
@@ -23,12 +24,8 @@ class CommentViewSet(viewsets.GenericViewSet):
             return [IsAuthenticated(), IsObjectOwner()]
         return [AllowAny()]
 
+    @required_params(params=['weit_id'])
     def list(self, request, *args, **kwargs):
-        if 'weit_id' not in request.query_params:
-            return Response({
-                'message': 'missing weit_id in request',
-                'success': False,
-            }, status=status.HTTP_400_BAD_REQUEST)
         # use filter for short code
         qs = self.get_queryset()
         comments = self.filter_queryset(qs).prefetch_related('user').order_by('created_at')

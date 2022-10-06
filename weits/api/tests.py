@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 
 WEIT_LIST_API = '/api/weits/'
 WEIT_CREATE_API = '/api/weits/'
+WEIT_RETRIEVE_API = '/api/weits/{}/'
 
 class WeitApiTests(TestCase):
 
@@ -65,6 +66,26 @@ class WeitApiTests(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['user']['id'], self.user1.id)
         self.assertEqual(Weit.objects.count(), count + 1)
+
+    def test_retrieve(self):
+        # weit id does not exist
+        url = WEIT_RETRIEVE_API.format(-1)
+        response = self.anonymous_client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+        weit = self.create_weit(self.user1)
+        url = WEIT_RETRIEVE_API.format(weit.id)
+        response = self.anonymous_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['comments']), 0)
+        self.create_comment(self.user1, weit, 'comment1')
+        self.create_comment(self.user2, weit, 'comment2')
+        self.create_comment(self.user2, self.create_weit(self.user1), 'comment3')
+        response = self.anonymous_client.get(url)
+        self.assertEqual(len(response.data['comments']), 2)
+
+
+
 
 
 
