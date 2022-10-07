@@ -18,6 +18,7 @@ from comments.api.views import CommentViewSet
 from django.contrib import admin
 from django.urls import include, path
 from friendships.api.views import FriendshipViewSet
+from likes.api.views import LikeViewSet
 from newsfeeds.api.views import NewsFeedViewSet
 from rest_framework import routers
 from weits.api.views import WeitViewSet
@@ -29,6 +30,7 @@ router.register(r'api/weits', WeitViewSet, basename='weits')
 router.register(r'api/friendships', FriendshipViewSet, basename='friendships')
 router.register(r'api/newsfeeds', NewsFeedViewSet, basename='newsfeeds')
 router.register(r'api/comments', CommentViewSet, basename='comments')
+router.register(r'api/likes', LikeViewSet, basename='likes')
 
 
 urlpatterns = [

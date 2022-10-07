@@ -18,6 +18,10 @@ class UserSerializerForComment(UserSerializerForWeit):
     pass
 
 
+class UserSerializerForLike(UserSerializerForWeit):
+    pass
+
+
 class UserSerializerForFriendship(UserSerializerForWeit):
     pass
 

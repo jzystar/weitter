@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from testing.testcases import TestCase
 
 # Create your tests here.
 from utils.time_helpers import utc_now
@@ -10,9 +10,21 @@ from weits.models import Weit
 
 class WeitTest(TestCase):
 
+    def setUp(self):
+        self.user = self.create_user('user1')
+        self.weit = self.create_weit(self.user)
+
     def test_hours_to_now(self):
-        user = User.objects.create_user('testuser', "testuser@test.com", "testpassword")
-        weit = Weit.objects.create(user=user, content='unit test for weit hours to now')
-        weit.created_at = utc_now() - timedelta(hours=10)
-        weit.save()
-        self.assertEqual(weit.hours_to_now, 10)
+        self.weit.created_at = utc_now() - timedelta(hours=10)
+        self.weit.save()
+        self.assertEqual(self.weit.hours_to_now, 10)
+
+    def test_like_set(self):
+        self.create_like(self.user, self.weit)
+        self.assertEqual(self.weit.like_set.count(), 1)
+        self.create_like(self.user, self.weit)
+        self.assertEqual(self.weit.like_set.count(), 1)
+
+        user2 = self.create_user(username='user2')
+        self.create_like(user2, self.weit)
+        self.assertEqual(self.weit.like_set.count(), 2)
