@@ -31,7 +31,11 @@ class CommentViewSet(viewsets.GenericViewSet):
         comments = self.filter_queryset(qs).prefetch_related('user').order_by('created_at')
         # weit_id = request.query_params['weit_id']
         # comments = Comment.objects.filter(weit_id=weit_id)
-        serializer = CommentSerializer(comments, many=True)
+        serializer = CommentSerializer(
+            comments,
+            context={'request': request},
+            many=True,
+        )
         return Response({
             'comments': serializer.data,
             'success': True,
@@ -51,7 +55,10 @@ class CommentViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         comment = serializer.save()
-        return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+        return Response(
+            CommentSerializer(comment, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def update(self, request, *args, **kwargs):
         serializer = CommentSerializerForUpdate(
@@ -65,7 +72,10 @@ class CommentViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         comment = serializer.save()
-        return Response(CommentSerializer(comment).data, status=status.HTTP_200_OK)
+        return Response(
+            CommentSerializer(comment, context={'request': request}).data,
+            status=status.HTTP_200_OK,
+        )
 
     def destroy(self, request, *args, **kwargs):
         comment = self.get_object()
