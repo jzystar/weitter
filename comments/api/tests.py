@@ -5,6 +5,10 @@ from testing.testcases import TestCase
 
 COMMENT_URL = '/api/comments/'
 COMMENT_DETAIL_URL = '/api/comments/{}/'
+WEIT_LIST_API = '/api/weits/'
+WEIT_DETAIL_API = '/api/weits/{}/'
+NEWSFEED_LIST_API = '/api/newsfeeds/'
+
 
 class CommentApiTests(TestCase):
     def setUp(self):
@@ -130,4 +134,27 @@ class CommentApiTests(TestCase):
             'user_id': self.user1.id,
         })
         self.assertEqual(len(response.data['comments']), 2)
+
+    def test_comment_count(self):
+        # test weit detail api
+        weit = self.create_weit(self.user1)
+        url = WEIT_DETAIL_API.format(weit.id)
+        response = self.user2_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments_count'], 0)
+
+        # test weit list api
+        self.create_comment(self.user1, weit)
+        response = self.user2_client.get(WEIT_LIST_API, {'user_id': self.user1.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['weits'][0]['comments_count'], 1)
+
+        # test newsfeeds list api
+        self.create_comment(self.user2, weit)
+        self.create_newsfeed(self.user2, weit)
+        response = self.user2_client.get(NEWSFEED_LIST_API)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['newsfeeds'][0]['weit']['comments_count'], 2)
+
+
 

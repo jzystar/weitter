@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from utils.decorators import required_params
-from weits.api.serializers import WeitSerializer, WeitSerializerForCreate, WeitSerializerWithComments
+from weits.api.serializers import WeitSerializer, WeitSerializerForCreate, WeitSerializerForDetail
 from weits.models import Weit
 
 
@@ -21,12 +21,21 @@ class WeitViewSet(viewsets.GenericViewSet):
         weits = Weit.objects.filter(
             user_id=request.query_params['user_id']
         ).prefetch_related('user').order_by('-created_at')
-        serializer = WeitSerializer(weits, many=True)
+        serializer = WeitSerializer(
+            weits,
+            context={'request': request},
+            many=True,
+        )
+
         return Response({"weits": serializer.data})
 
     def retrieve(self, request, *args, **kwargs):
         weit = self.get_object()
-        return Response(WeitSerializerWithComments(weit).data)
+        serializer = WeitSerializerForDetail(
+            weit,
+            context={'request': request},
+        )
+        return Response(serializer.data)
 
     def create(self, request):
         serializer = WeitSerializerForCreate(
@@ -41,4 +50,8 @@ class WeitViewSet(viewsets.GenericViewSet):
             }, status=400)
         weit = serializer.save()
         NewsFeedServices.fanout_to_followers(weit)
-        return Response(WeitSerializer(weit).data, status=201)
+        return Response(WeitSerializer(
+            weit,
+            context={'request': request}).data,
+            status=201,
+        )
