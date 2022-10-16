@@ -130,6 +130,4 @@ dmypy.json
 .vagrant
 .pycharm_helpers
 .idea
-requirements.txt
-provision.sh
 .swp
