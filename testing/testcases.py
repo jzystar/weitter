@@ -43,7 +43,7 @@ class TestCase(DjangoTestCase):
             content_type=ContentType.objects.get_for_model(target),
             #content_type=ContentType.objects.get_for_model(target.__class__),
             object_id=target.id,
-        )
+        )[0]
 
     def create_user_and_client(self, *args, **kwargs):
         user = self.create_user(*args, *kwargs)

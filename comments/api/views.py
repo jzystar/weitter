@@ -1,3 +1,4 @@
+from inbox.services import NotificationService
 from comments.api.permissions import IsObjectOwner
 from comments.api.serializers import (
     CommentSerializer,
@@ -55,6 +56,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         comment = serializer.save()
+        NotificationService.send_comment_notification(comment)
         return Response(
             CommentSerializer(comment, context={'request': request}).data,
             status=status.HTTP_201_CREATED,

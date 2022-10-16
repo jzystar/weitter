@@ -146,7 +146,6 @@ class LikeApiTests(TestCase):
         self.assertEqual(comment.like_set.count(), 0)
         self.assertEqual(weit.like_set.count(), 1)
 
-
         response = self.user2_client.post(LIKE_CANCEL_URL, like_weit_data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['deleted'], 1)
