@@ -32,7 +32,6 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.like_set.count()
 
 
-
 class CommentSerializerForCreate(serializers.ModelSerializer):
     user_id = serializers.IntegerField()
     weit_id = serializers.IntegerField()

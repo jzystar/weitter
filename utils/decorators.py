@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def required_params(request_attr='query_params', params=None):
+def required_params(method='GET', params=None):
     """
     This decorator is used for parameters check in viewsets
     """
@@ -18,7 +18,10 @@ def required_params(request_attr='query_params', params=None):
             instance is 'self' in viewset fucntion parameters
             """
             # request_attr might be 'query_params' for GET or 'data' for POST
-            data = getattr(request, request_attr)
+            if method.lower() == 'get':
+                data = request.query_params
+            else:
+                data = request.data
             missing_params = [
                 param
                 for param in params
