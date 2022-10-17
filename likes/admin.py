@@ -4,7 +4,7 @@ from likes.models import Like
 
 @admin.register(Like)
 class LikeAdmin(admin.ModelAdmin):
-    data_hierachy = 'created_at'
+    date_hierachy = 'created_at'
     list_display = (
         'user',
         'content_type',
