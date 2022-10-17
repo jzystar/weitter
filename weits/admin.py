@@ -4,7 +4,7 @@ from weits.models import Weit
 # Register your models here.
 @admin.register(Weit)
 class WeitAdmin(admin.ModelAdmin):
-    data_hierachy = 'created_at'
+    date_hierachy = 'created_at'
     list_display = (
         'id',
         'user',

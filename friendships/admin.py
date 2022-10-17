@@ -4,7 +4,7 @@ from friendships.models import Friendship
 # Register your models here.
 @admin.register(Friendship)
 class FriendshipAdmin(admin.ModelAdmin):
-    data_hierachy = 'created_at'
+    date_hierachy = 'created_at'
     list_display = (
         'id',
         'from_user',

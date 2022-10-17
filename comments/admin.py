@@ -4,7 +4,7 @@ from comments.models import Comment
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    data_hierachy = 'created_at'
+    date_hierachy = 'created_at'
     list_display = (
         'id',
         'user',
