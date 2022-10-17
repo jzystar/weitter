@@ -7,8 +7,8 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
     avatar = models.FileField(null=True)
     nickname = models.CharField(null=True, max_length=200)
-    created_at = models.DateTimeField(auto_now_add=False)
-    updated_at = models.DateTimeField(auto_now=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '{} {}'.format(self.user, self.nickname)
