@@ -143,19 +143,19 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # set different storages for test
-# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-# TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
-# if TESTING:
-#     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
+if TESTING:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
-# AWS_STORAGE_BUKET_NAME = 'django-weitter'
-# AWS_S3_REGION_NAME = ''
+AWS_STORAGE_BUCKET_NAME = 'django-weitter'
+AWS_S3_REGION_NAME = 'ap-northeast-1'
 
 # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY is very secret, and they should not
 # be visible for all developers, we can put it in local_settings.py or set it in
 # env path variables
-# AWS_ACCESS_KEY_ID = 'YOUR_ACCESS_KEY_ID'
-# AWS_SECRET_ACCESS_KEY = 'YOUR_SECRET_ACCESS_KEY'
+AWS_ACCESS_KEY_ID = 'AKIAXL4XL7VGL4Y5WA7X'
+AWS_SECRET_ACCESS_KEY = '9f5lS1eptwtdxiCBsb2z9uo6zlwybl90+50ny9cI'
 
 MEDIA_ROOT='media/'
 

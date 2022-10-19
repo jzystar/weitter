@@ -17,7 +17,7 @@ class UserProfile(models.Model):
 # 定义一个返回profile的property方法，植入到user类中去
 # 这样可以通过user实例来直接访问与之关联的profile
 # 对User进行hack，更方便快捷的访问profile，可以常用于OneToOne结构中
-def get_profile(user: User):
+def get_profile(user):
     # 基于user实例的profile缓存，对同一个user.profile多次操作时只需要访问一次数据库就好
     # 这种对于实例的一个属性的cache，可以避免多次profile访问时造成的多次数据库查询
     if hasattr(user, '_cached_user_profile'):
