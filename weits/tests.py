@@ -5,7 +5,8 @@ from testing.testcases import TestCase
 
 # Create your tests here.
 from utils.time_helpers import utc_now
-from weits.models import Weit
+from weits.models import WeitPhoto
+from weits.constants import WeitPhotoStatus
 
 
 class WeitTest(TestCase):
@@ -28,3 +29,13 @@ class WeitTest(TestCase):
         user2 = self.create_user(username='user2')
         self.create_like(user2, self.weit)
         self.assertEqual(self.weit.like_set.count(), 2)
+
+    def test_weit_photo(self):
+        photo = WeitPhoto.objects.create(
+            weit=self.weit,
+            user=self.user,
+        )
+
+        self.assertEqual(photo.user, self.user)
+        self.assertEqual(photo.status, WeitPhotoStatus.PENDING)
+        self.assertEqual(self.weit.weitphoto_set.count(), 1)
