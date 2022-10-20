@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 import sys
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -148,14 +149,18 @@ TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
 if TESTING:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
-AWS_STORAGE_BUCKET_NAME = 'django-weitter'
-AWS_S3_REGION_NAME = 'ap-northeast-1'
 
 # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY is very secret, and they should not
 # be visible for all developers, we can put it in local_settings.py or set it in
 # env path variables
+# AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
+# AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+# AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
+# AWS_S3_REGION_NAME = os.environ['AWS_S3_REGION_NAME']
 AWS_ACCESS_KEY_ID = 'AKIAXL4XL7VGL4Y5WA7X'
 AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'django-weitter'
+AWS_S3_REGION_NAME = 'ap-northeast-1'
 
 MEDIA_ROOT='media/'
 
