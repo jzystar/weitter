@@ -1,6 +1,7 @@
-from weits.models import Weit
-from testing.testcases import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
+from testing.testcases import TestCase
+from weits.models import Weit, WeitPhoto
 
 WEIT_LIST_API = '/api/weits/'
 WEIT_CREATE_API = '/api/weits/'
@@ -84,6 +85,74 @@ class WeitApiTests(TestCase):
         response = self.anonymous_client.get(url)
         self.assertEqual(len(response.data['comments']), 2)
 
+    def test_create_with_files(self):
+        # test no file field, compatible to old api
+        response = self.user1_client.post(WEIT_CREATE_API, {
+            'content': 'a test file',
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(WeitPhoto.objects.count(), 0)
+
+        # test empty files list
+        response = self.user1_client.post(WEIT_CREATE_API, {
+            'content': 'a test file',
+            'files': [],
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(WeitPhoto.objects.count(), 0)
+
+        # test single file
+        file = SimpleUploadedFile(
+            name='testfile.jpg',
+            content=str.encode('selfie 1'),
+            content_type='image/jpeg',
+        )
+        response = self.user1_client.post(WEIT_CREATE_API, {
+            'content': 'a test file',
+            'files': [file],
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(WeitPhoto.objects.count(), 1)
+
+        file1 = SimpleUploadedFile(
+            name='testfile1.jpg',
+            content=str.encode('selfie 1'),
+            content_type='image/jpeg',
+        )
+        file2 = SimpleUploadedFile(
+            name='testfile2.jpg',
+            content=str.encode('selfie 2'),
+            content_type='image/jpeg',
+        )
+        response = self.user1_client.post(WEIT_CREATE_API, {
+            'content': 'a test file',
+            'files': [file1, file2],
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(WeitPhoto.objects.count(), 3)
+
+        # test get photo url from get
+        retrieve_url = WEIT_RETRIEVE_API.format(response.data['id'])
+        response = self.user1_client.get(retrieve_url)
+        self.assertEqual(len(response.data['photo_urls']), 2)
+        self.assertTrue('testfile1' in response.data['photo_urls'][0], True)
+        self.assertTrue('testfile2' in response.data['photo_urls'][1], True)
+
+        # test more than 9 files
+        files = [
+            SimpleUploadedFile(
+                name=f'testfile{i}.jpg',
+                content=str.encode(f'selfie {i}'),
+                content_type='image/jpeg',
+            )
+            for i in range(10)
+        ]
+        response = self.user1_client.post(WEIT_CREATE_API, {
+            'content': 'failed due to number of photo exceeds limit',
+            'files': files,
+        })
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(WeitPhoto.objects.count(), 3)
 
 
 
