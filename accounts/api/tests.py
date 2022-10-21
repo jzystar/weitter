@@ -148,7 +148,7 @@ class UserProfileApiTests(TestCase):
             'nickname': 'new nickname'
         })
         self.assertEqual(response.status_code, 403)
-        
+
         # test can only be updated by user himself.
         _, user2_client = self.create_user_and_client('user2')
         response = user2_client.put(url, {

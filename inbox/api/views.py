@@ -20,6 +20,7 @@ class NotificationViewSet(
     # used for 'list' method in viewsets.mixins.ListModelMixin
     filterset_fields = ('unread', )
 
+    # 用此方法来实现user只访问自己的通知，因为之前那种IsObjectOwner的permission行不通，notification中没有user这个field
     def get_queryset(self):
         # Notification use User as ForeignKey, and user related name is 'notifications'
         # so we can use notifications instead of notification_set to back retrieve notifications

@@ -9,3 +9,5 @@ WEIT_PHOTO_STATUS_CHOICES = (
     (WeitPhotoStatus.APPROVED, 'Approved'),
     (WeitPhotoStatus.REJECTED, 'Rejected'),
 )
+
+WEIT_PHOTOS_UPLOAD_LIMIT = 9

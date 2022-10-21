@@ -23,7 +23,7 @@ class NotificationService(object):
                 like.user,
                 recipient=target.user,
                 verb="liked your comment",
-                targeet=target,
+                target=target,
             )
 
     @classmethod
