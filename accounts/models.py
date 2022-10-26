@@ -27,6 +27,7 @@ def get_profile(user):
     return profile
 
 
+# User类为django内置的类，无法修改，用这种方式在User类外为user增加一个property或者方法
 # 为django内置的User增加了一个profile property，在project运行起来时就会执行这一句
 User.profile = property(get_profile)
 
