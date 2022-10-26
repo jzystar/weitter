@@ -1,25 +1,40 @@
-from rest_framework.exceptions import ValidationError
-
 from accounts.api.serializers import UserSerializerForFriendship
-from rest_framework import serializers
-from friendships.models import Friendship
 from django.contrib.auth.models import User
+from friendships.models import Friendship
+from friendships.services import FriendshipServices
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 
 class FollowerSerializer(serializers.ModelSerializer):
     user = UserSerializerForFriendship(source='from_user')
+    has_followed = serializers.SerializerMethodField()
 
     class Meta:
         model = Friendship
-        fields = ('user', 'created_at')
+        fields = ('user', 'created_at', 'has_followed')
+
+    def get_has_followed(self, obj):
+        if self.context['request'].user.is_anonymous:
+            return False
+        # 目前会对每个object都执行一次query，需要优化
+        return FriendshipServices.has_followed(self.context['request'].user, obj.from_user)
+
 
 
 class FollowingSerializer(serializers.ModelSerializer):
     user = UserSerializerForFriendship(source='to_user')
+    has_followed = serializers.SerializerMethodField()
 
     class Meta:
         model = Friendship
-        fields = ('user', 'created_at')
+        fields = ('user', 'created_at', 'has_followed')
+
+    def get_has_followed(self, obj):
+        if self.context['request'].user.is_anonymous:
+            return False
+        # 目前会对每个object都执行一次query，需要优化
+        return FriendshipServices.has_followed(self.context['request'].user, obj.to_user)
 
 
 class FriendshipSerializerForCreate(serializers.ModelSerializer):
