@@ -147,14 +147,14 @@ class CommentApiTests(TestCase):
         self.create_comment(self.user1, weit)
         response = self.user2_client.get(WEIT_LIST_API, {'user_id': self.user1.id})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['weits'][0]['comments_count'], 1)
+        self.assertEqual(response.data['results'][0]['comments_count'], 1)
 
         # test newsfeeds list api
         self.create_comment(self.user2, weit)
         self.create_newsfeed(self.user2, weit)
         response = self.user2_client.get(NEWSFEED_LIST_API)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['newsfeeds'][0]['weit']['comments_count'], 2)
+        self.assertEqual(response.data['results'][0]['weit']['comments_count'], 2)
 
 
 

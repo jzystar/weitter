@@ -5,11 +5,13 @@ from rest_framework.response import Response
 from utils.decorators import required_params
 from weits.api.serializers import WeitSerializer, WeitSerializerForCreate, WeitSerializerForDetail
 from weits.models import Weit
+from utils.paginations import EndlessPagination
 
 
 class WeitViewSet(viewsets.GenericViewSet):
     queryset = Weit.objects.all()
     serializer_class = WeitSerializerForCreate
+    pagination_class = EndlessPagination
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -21,13 +23,14 @@ class WeitViewSet(viewsets.GenericViewSet):
         weits = Weit.objects.filter(
             user_id=request.query_params['user_id']
         ).prefetch_related('user').order_by('-created_at')
+        weits = self.paginate_queryset(weits)
         serializer = WeitSerializer(
             weits,
             context={'request': request},
             many=True,
         )
 
-        return Response({"weits": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         weit = self.get_object()
