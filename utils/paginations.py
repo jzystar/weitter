@@ -1,0 +1,38 @@
+from rest_framework.pagination import BasePagination
+from rest_framework.response import Response
+
+
+class EndlessPagination(BasePagination):
+    page_size = 20
+
+    def __init__(self):
+        super(BasePagination, self).__init__()
+        self.has_next_page = False
+
+    def to_html(self):
+        pass
+
+    def paginate_queryset(self, queryset, request, view=None):
+        # 下拉向上翻页，直接返回比当前第一个更新的weits，
+        # 若长时间没有上翻过，则不应用上翻更新了，而是应该重新加载最新的weits
+        if 'created_at__gt' in request.query_params:
+            created_at__gt = request.query_params['created_at__gt']
+            queryset = queryset.filter(created_at__gt=created_at__gt)
+            self.has_next_page = False
+            return queryset.order_by('-created_at')
+
+        if 'created_at__lt' in request.query_params:
+            created_at__lt = request.query_params['created_at__lt']
+            queryset = queryset.filter(created_at__lt=created_at__lt)
+
+        # 不带参数的翻页
+        # 多取一个，用来查看是否有下一页
+        queryset = queryset.order_by('-created_at')[:self.page_size + 1]
+        self.has_next_page = len(queryset) > self.page_size
+        return queryset[:self.page_size]
+
+    def get_paginated_response(self, data):
+        return Response({
+            'has_next_page': self.has_next_page,
+            'results': data,
+        })

@@ -1,6 +1,7 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from testing.testcases import TestCase
+from utils.paginations import EndlessPagination
 from weits.models import Weit, WeitPhoto
 
 WEIT_LIST_API = '/api/weits/'
@@ -34,13 +35,13 @@ class WeitApiTests(TestCase):
         # regular rquest
         response = self.anonymous_client.get(WEIT_LIST_API, {'user_id': self.user1.id})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['weits']), 3)
+        self.assertEqual(len(response.data['results']), 3)
         response = self.anonymous_client.get(WEIT_LIST_API, {'user_id': self.user2.id})
-        self.assertEqual(len(response.data['weits']), 2)
+        self.assertEqual(len(response.data['results']), 2)
 
         # test order
-        self.assertEqual(response.data['weits'][0]['id'], self.weits2[1].id)
-        self.assertEqual(response.data['weits'][1]['id'], self.weits2[0].id)
+        self.assertEqual(response.data['results'][0]['id'], self.weits2[1].id)
+        self.assertEqual(response.data['results'][1]['id'], self.weits2[0].id)
 
     def test_create_api(self):
         # test login validation
@@ -153,6 +154,58 @@ class WeitApiTests(TestCase):
         })
         self.assertEqual(response.status_code, 400)
         self.assertEqual(WeitPhoto.objects.count(), 3)
+
+    def test_pagnination(self):
+        page_size = EndlessPagination.page_size
+
+        # create page_size * 2 weits
+        for i in range(page_size * 2 - len(self.weits1)):
+            self.weits1.append(self.create_weit(self.user1, 'weit{}'.format(i)))
+
+        weits = self.weits1[::-1]
+
+        # pull the first page
+        response = self.user1_client.get(WEIT_LIST_API, {'user_id': self.user1.id})
+        self.assertEqual(response.data['has_next_page'], True)
+        self.assertEqual(len(response.data['results']), page_size)
+        self.assertEqual(response.data['results'][0]['id'], weits[0].id)
+        self.assertEqual(response.data['results'][1]['id'], weits[1].id)
+        self.assertEqual(response.data['results'][page_size - 1]['id'], weits[page_size - 1].id)
+
+        # pull the second page
+        response = self.user1_client.get(WEIT_LIST_API, {
+            'user_id': self.user1.id,
+            'created_at__lt': weits[page_size - 1].created_at,
+        })
+        self.assertEqual(response.data['has_next_page'], False)
+        self.assertEqual(len(response.data['results']), page_size)
+        self.assertEqual(response.data['results'][0]['id'], weits[page_size].id)
+        self.assertEqual(response.data['results'][1]['id'], weits[page_size + 1].id)
+        self.assertEqual(response.data['results'][page_size - 1]['id'], weits[2 * page_size - 1].id)
+
+        # pull latest weits
+        response = self.user1_client.get(WEIT_LIST_API, {
+            'user_id': self.user1.id,
+            'created_at__gt': weits[0].created_at,
+        })
+
+        self.assertEqual(response.data['has_next_page'], False)
+        self.assertEqual(len(response.data['results']), 0)
+
+        new_weit = self.create_weit(self.user1, 'a new weit comes in')
+        response = self.user1_client.get(WEIT_LIST_API, {
+            'user_id': self.user1.id,
+            'created_at__gt': weits[0].created_at,
+        })
+
+        self.assertEqual(response.data['has_next_page'], False)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], new_weit.id)
+
+
+
+
+
 
 
 
