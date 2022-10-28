@@ -6,7 +6,26 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 
-class FollowerSerializer(serializers.ModelSerializer):
+class FollowingUserIdSetMixin:
+
+    # 先在instance层面上cache，没有的话再去FriendshipSerivces中请求
+    # FriendshipServices.get_following_user_id_set也会先访问cache判断是否已经存在了
+    # key point:
+    # 在第一次访问followers/followings时， 就拿到当前用户所有的followers/followings对应的user_id，
+    # 并将其存入缓存：memcache（用于缓存短期内的同样请求再次访问数据库）和instance级别（仅用于缓存当前的请求）
+    @property
+    def following_user_id_set(self: serializers.ModelSerializer):
+        if self.context['request'].user.is_anonymous:
+            return {}
+        if hasattr(self, '_cached_following_user_id_set'):
+            return self._cached_following_user_id_set
+        user_id_set = FriendshipServices.get_following_user_id_set(
+            self.context['request'].user.id,
+        )
+        setattr(self, '_cached_following_user_id_set', user_id_set)
+        return user_id_set
+
+class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     user = UserSerializerForFriendship(source='from_user')
     has_followed = serializers.SerializerMethodField()
 
@@ -17,12 +36,10 @@ class FollowerSerializer(serializers.ModelSerializer):
     def get_has_followed(self, obj):
         if self.context['request'].user.is_anonymous:
             return False
-        # 目前会对每个object都执行一次query，需要优化
-        return FriendshipServices.has_followed(self.context['request'].user, obj.from_user)
+        return obj.from_user_id in self.following_user_id_set
 
 
-
-class FollowingSerializer(serializers.ModelSerializer):
+class FollowingSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     user = UserSerializerForFriendship(source='to_user')
     has_followed = serializers.SerializerMethodField()
 
@@ -33,8 +50,7 @@ class FollowingSerializer(serializers.ModelSerializer):
     def get_has_followed(self, obj):
         if self.context['request'].user.is_anonymous:
             return False
-        # 目前会对每个object都执行一次query，需要优化
-        return FriendshipServices.has_followed(self.context['request'].user, obj.to_user)
+        return obj.to_user_id in self.following_user_id_set
 
 
 class FriendshipSerializerForCreate(serializers.ModelSerializer):

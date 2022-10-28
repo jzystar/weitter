@@ -6,8 +6,12 @@ from likes.models import Like
 from newsfeeds.models import NewsFeed
 from rest_framework.test import APIClient
 from weits.models import Weit
+from django.core.cache import caches
 
 class TestCase(DjangoTestCase):
+
+    def clear_cache(self):
+        caches['testing'].clear()
 
     @property
     def anonymous_client(self):
