@@ -12,6 +12,7 @@ from weits.constants import WeitPhotoStatus
 class WeitTest(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.user = self.create_user('user1')
         self.weit = self.create_weit(self.user)
 

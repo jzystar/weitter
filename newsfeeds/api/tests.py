@@ -11,6 +11,7 @@ POST_WEITS_URL = '/api/weits/'
 class NewsFeedApiTests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.user1 = self.create_user('user1')
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
@@ -92,4 +93,28 @@ class NewsFeedApiTests(TestCase):
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['id'], new_newsfeed.id)
 
+    def test_user_cache(self):
+        profile = self.user2.profile
+        profile.nickname = 'user2nickname'
+        profile.save()
 
+        self.assertEqual(self.user1.username, 'user1')
+        self.create_newsfeed(self.user2, self.create_weit(self.user1))
+        self.create_newsfeed(self.user2, self.create_weit(self.user2))
+
+        response = self.user2_client.get(NEWSFEED_URL)
+        results = response.data['results']
+        self.assertEqual(results[0]['weit']['user']['username'], 'user2')
+        self.assertEqual(results[0]['weit']['user']['nickname'], 'user2nickname')
+        self.assertEqual(results[1]['weit']['user']['username'], 'user1')
+
+        self.user1.username = 'user1username'
+        self.user1.save()
+        profile.nickname = 'user2newnickname'
+        profile.save()
+
+        response = self.user2_client.get(NEWSFEED_URL)
+        results = response.data['results']
+        self.assertEqual(results[0]['weit']['user']['username'], 'user2')
+        self.assertEqual(results[0]['weit']['user']['nickname'], 'user2newnickname')
+        self.assertEqual(results[1]['weit']['user']['username'], 'user1username')

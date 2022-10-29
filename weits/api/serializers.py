@@ -11,7 +11,7 @@ from weits.services import WeitService
 
 class WeitSerializer(serializers.ModelSerializer):
     # need to get not only user id but also user other info
-    user = UserSerializerForWeit()
+    user = UserSerializerForWeit(source='cached_user')
     has_liked = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()

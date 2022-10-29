@@ -4,6 +4,9 @@ from testing.testcases import TestCase
 
 class UserProfileTest(TestCase):
 
+    def setUp(self):
+        self.clear_cache()
+
     def test_profile_property(self):
         user1 = self.create_user('user1')
         p = user1.profile

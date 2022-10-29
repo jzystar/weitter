@@ -8,11 +8,22 @@ from weits.models import Weit
 
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializerForLike()
+    # use cache from UserService functions here, but we have to implement get_user func for each like serializer which used UserSerializer
+    # so we can use 'source' instead
+    # user = serializers.SerializerMethodField()
+
+    # use 'source', so we have to implement source property 'cached_user' in like model
+    user = UserSerializerForLike(source='cached_user')
+
 
     class Meta:
         model = Like
         fields = ('user', 'created_at')
+
+    # def get_user(self, obj):
+    #     from accounts.services import UserService
+    #     user = UserService.get_user_through_cache(obj.user_id)
+    #     return UserSerializerForLike(instance=user)
 
 
 class LikeSerializerForCreateAndCancel(serializers.ModelSerializer):

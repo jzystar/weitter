@@ -8,7 +8,7 @@ from weits.models import Weit
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializerForComment()
+    user = UserSerializerForComment(source='cached_user')
     has_liked = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
 
