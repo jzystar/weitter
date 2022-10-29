@@ -61,7 +61,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 
         instance = serializer.save()
         # 记得更新缓存，一般是删掉当前对应的缓存，如果有的话
-        FriendshipServices.invalidate_following_cache(request.user.id)
+        # FriendshipServices.invalidate_following_cache(request.user.id)
         return Response(
             FollowingSerializer(instance, context={'request': request}).data,
             status=status.HTTP_201_CREATED
@@ -81,7 +81,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             from_user=request.user,
             to_user=unfollow_user,
         ).delete()
-        FriendshipServices.invalidate_following_cache(request.user.id)
+        # FriendshipServices.invalidate_following_cache(request.user.id)
         return Response({'success': True, 'deleted': deleted})
 
     def list(self, request):

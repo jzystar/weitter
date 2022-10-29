@@ -13,6 +13,7 @@ USER_PROFILE_DETAIL_URL = '/api/profiles/{}/'
 class AccountAPITests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.client = APIClient()
         self.correct_password = 'password_test'
         self.user = self.create_user(

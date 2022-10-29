@@ -26,7 +26,8 @@ class FollowingUserIdSetMixin:
         return user_id_set
 
 class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
-    user = UserSerializerForFriendship(source='from_user')
+    # use cached user for all user serializers
+    user = UserSerializerForFriendship(source='cached_from_user')
     has_followed = serializers.SerializerMethodField()
 
     class Meta:
@@ -40,7 +41,7 @@ class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
 
 
 class FollowingSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
-    user = UserSerializerForFriendship(source='to_user')
+    user = UserSerializerForFriendship(source='cached_to_user')
     has_followed = serializers.SerializerMethodField()
 
     class Meta:
