@@ -4,7 +4,7 @@ from weits.api.serializers import WeitSerializer
 
 
 class NewsFeedSerializer(serializers.ModelSerializer):
-    weit = WeitSerializer()
+    weit = WeitSerializer(source='cached_weit')
     
     class Meta:
         model = NewsFeed
