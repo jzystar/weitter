@@ -39,5 +39,6 @@ class Friendship(models.Model):
     def cached_to_user(self):
         return MemcachedHelper.get_object_through_cache(User, self.to_user_id)
 
+
 pre_delete.connect(friendship_changed, sender=Friendship)
 post_save.connect(friendship_changed, sender=Friendship)

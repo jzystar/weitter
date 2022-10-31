@@ -18,6 +18,7 @@ class UserService:
 
         # cache miss, read from db
         profile, _ = UserProfile.objects.get_or_create(user_id=user_id)
+        cache.set(key, profile)
         return profile
 
     @classmethod

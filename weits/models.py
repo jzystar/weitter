@@ -9,8 +9,6 @@ from utils.time_helpers import utc_now
 from weits.constants import WeitPhotoStatus, WEIT_PHOTO_STATUS_CHOICES
 
 
-
-
 class Weit(models.Model):
     user = models.ForeignKey(
         User,

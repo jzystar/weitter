@@ -4,7 +4,7 @@ class NewsFeedServices(object):
 
     @classmethod
     def fanout_to_followers(self, weit):
-        followers= FriendshipServices.get_followers(weit.user)
+        followers = FriendshipServices.get_followers(weit.user)
         # not allowed queries in for loop
         # for follower in followers:
         #     NewsFeed.objects.create(user=followers, weit=weit)

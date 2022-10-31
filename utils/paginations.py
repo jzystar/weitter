@@ -6,7 +6,7 @@ class EndlessPagination(BasePagination):
     page_size = 20
 
     def __init__(self):
-        super(BasePagination, self).__init__()
+        super(EndlessPagination, self).__init__()
         self.has_next_page = False
 
     def to_html(self):
