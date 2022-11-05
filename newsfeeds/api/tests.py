@@ -2,6 +2,8 @@ from testing.testcases import TestCase
 from rest_framework.test import APIClient
 from newsfeeds.models import NewsFeed
 from utils.paginations import EndlessPagination
+from django.conf import settings
+from newsfeeds.services import NewsFeedServices
 
 
 NEWSFEED_URL = '/api/newsfeeds/'
@@ -140,5 +142,56 @@ class NewsFeedApiTests(TestCase):
         response = self.user2_client.get(NEWSFEED_URL)
         results = response.data['results']
         self.assertEqual(results[0]['weit']['content'], 'newcontent1')
+
+    def _paginate_to_get_newsfeeds(self, client):
+        # paginate until the end
+        response = client.get(NEWSFEED_URL)
+        results = response.data['results']
+        while response.data['has_next_page']:
+            created_at__lt = response.data['results'][-1]['created_at']
+            response = client.get(NEWSFEED_URL, {'created_at__lt': created_at__lt})
+            results.extend(response.data['results'])
+        return results
+
+    def test_redis_list_limit(self):
+        list_limit = settings.REDIS_LIST_LENGTH_LIMIT
+        page_size = 20
+        users = [self.create_user('testuser{}'.format(i)) for i in range(5)]
+        newsfeeds = []
+        for i in range(list_limit + page_size):
+            weit = self.create_weit(user=users[i % 5], content='feed{}'.format(i))
+            feed = self.create_newsfeed(self.user1, weit)
+            newsfeeds.append(feed)
+        newsfeeds = newsfeeds[::-1]
+
+        # only cached list_limit objects
+        cached_newsfeeds = NewsFeedServices.get_cached_newsfeeds(self.user1.id)
+        self.assertEqual(len(cached_newsfeeds), list_limit)
+        queryset = NewsFeed.objects.filter(user=self.user1)
+        self.assertEqual(queryset.count(), list_limit + page_size)
+
+        results = self._paginate_to_get_newsfeeds(self.user1_client)
+        self.assertEqual(len(results), list_limit + page_size)
+        for i in range(list_limit + page_size):
+            self.assertEqual(newsfeeds[i].id, results[i]['id'])
+
+        # a followed user create a new weit
+        self.create_friendship(self.user1, self.user2)
+        new_weit = self.create_weit(self.user2, 'a new weit')
+        NewsFeedServices.fanout_to_followers(new_weit)
+
+        def _test_newsfeeds_after_new_feed_pushed():
+            results = self._paginate_to_get_newsfeeds(self.user1_client)
+            self.assertEqual(len(results), list_limit + page_size + 1)
+            self.assertEqual(results[0]['weit']['id'], new_weit.id)
+            for i in range(list_limit + page_size):
+                self.assertEqual(newsfeeds[i].id, results[i + 1]['id'])
+
+        _test_newsfeeds_after_new_feed_pushed()
+
+        # cache expired
+        self.clear_cache()
+        _test_newsfeeds_after_new_feed_pushed()
+
 
 

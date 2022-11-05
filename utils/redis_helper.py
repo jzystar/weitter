@@ -10,7 +10,9 @@ class RedisHelper:
         # cache miss 时，需要从数据库即queryset中取数据，存到cache中
         conn = RedisClient.get_connection()
         serialized_list = []
-        for obj in objects:
+        # 最多只cache REDIS_LIST_LENGTH_LIMIT个数据，比如200个，超过这个的就去数据库里面读
+        # 此时的数据量不会太大，所以可以直接访问数据库
+        for obj in objects[: settings.REDIS_LIST_LENGTH_LIMIT]:
             serialized_data = DjangoModelSerializer.serialize(obj)
             serialized_list.append(serialized_data)
 
@@ -44,3 +46,5 @@ class RedisHelper:
             return
         serialized_data = DjangoModelSerializer.serialize(obj)
         conn.lpush(key, serialized_data)
+        # redis 的区间是开区间，包括最后一个
+        conn.ltrim(key, 0, settings.REDIS_LIST_LENGTH_LIMIT - 1)

@@ -8,7 +8,7 @@ from newsfeeds.models import NewsFeed
 from rest_framework.test import APIClient
 from utils.redis_client import RedisClient
 from weits.models import Weit
-
+from friendships.models import Friendship
 
 class TestCase(DjangoTestCase):
 
@@ -61,3 +61,6 @@ class TestCase(DjangoTestCase):
 
     def create_newsfeed(self, user, weit):
         return NewsFeed.objects.create(user=user, weit=weit)
+
+    def create_friendship(self, from_user, to_user):
+        return Friendship.objects.create(from_user=from_user, to_user=to_user)
