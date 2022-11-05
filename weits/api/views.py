@@ -3,9 +3,10 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from utils.decorators import required_params
+from utils.paginations import EndlessPagination
 from weits.api.serializers import WeitSerializer, WeitSerializerForCreate, WeitSerializerForDetail
 from weits.models import Weit
-from utils.paginations import EndlessPagination
+from weits.services import WeitService
 
 
 class WeitViewSet(viewsets.GenericViewSet):
@@ -20,9 +21,11 @@ class WeitViewSet(viewsets.GenericViewSet):
 
     @required_params(params=['user_id'])
     def list(self, request):
-        weits = Weit.objects.filter(
-            user_id=request.query_params['user_id']
-        ).prefetch_related('user').order_by('-created_at')
+        # weits = Weit.objects.filter(
+        #     user_id=request.query_params['user_id']
+        # ).prefetch_related('user').order_by('-created_at')
+        # use cache for listing weits
+        weits = WeitService.get_cached_weits(user_id=request.query_params['user_id'])
         weits = self.paginate_queryset(weits)
         serializer = WeitSerializer(
             weits,

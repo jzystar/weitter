@@ -5,6 +5,8 @@ from utils.redis_serializers import DjangoModelSerializer
 from utils.time_helpers import utc_now
 from weits.constants import WeitPhotoStatus
 from weits.models import WeitPhoto
+from weits.services import WeitService
+from weitter.cache import USER_WEITS_PATTERN
 
 
 class WeitTest(TestCase):
@@ -50,3 +52,46 @@ class WeitTest(TestCase):
         data = conn.get(f'weit:{weit.id}')
         cached_weit = DjangoModelSerializer.deserialize(data)
         self.assertEqual(weit, cached_weit)
+
+
+class WeitServiceTest(TestCase):
+    def setUp(self):
+        self.clear_cache()
+        self.user = self.create_user('user')
+
+    def test_get_user_weits(self):
+        weit_ids = []
+        for i in range(3):
+            weit = self.create_weit(self.user, 'weit {}'.format(i))
+            weit_ids.append(weit.id)
+        weit_ids = weit_ids[::-1]
+
+        conn = RedisClient.get_connection()
+
+        # cache miss
+        weits = WeitService.get_cached_weits(self.user.id)
+        self.assertEqual([w.id for w in weits], weit_ids)
+
+        # cache hit
+        weits = WeitService.get_cached_weits(self.user.id)
+        self.assertEqual([w.id for w in weits], weit_ids)
+
+        # cache update
+        new_weit = self.create_weit(self.user, 'new weit content')
+        weits = WeitService.get_cached_weits(self.user.id)
+        weit_ids.insert(0, new_weit.id)
+        self.assertEqual([w.id for w in weits], weit_ids)
+
+    def test_create_new_weit_before_get_cached_weits(self):
+        weit1 = self.create_weit(self.user, 'weit1')
+        RedisClient.clear()
+
+        conn = RedisClient.get_connection()
+
+        key = USER_WEITS_PATTERN.format(user_id=self.user.id)
+        self.assertEqual(conn.exists(key), False)
+        weit2 = self.create_weit(self.user, 'weit2')
+        self.assertEqual(conn.exists(key), True)
+
+        weits = WeitService.get_cached_weits(self.user.id)
+        self.assertEqual([w.id for w in weits], [weit2.id, weit1.id])
