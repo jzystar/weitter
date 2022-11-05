@@ -189,9 +189,7 @@ class NewsFeedApiTests(TestCase):
 
         _test_newsfeeds_after_new_feed_pushed()
 
-        # cache expired
+        # cache expired and test again
         self.clear_cache()
         _test_newsfeeds_after_new_feed_pushed()
-
-
 
