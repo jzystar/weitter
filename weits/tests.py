@@ -1,12 +1,10 @@
 from datetime import timedelta
-
-from django.contrib.auth.models import User
 from testing.testcases import TestCase
-
-# Create your tests here.
+from utils.redis_client import RedisClient
+from utils.redis_serializers import DjangoModelSerializer
 from utils.time_helpers import utc_now
-from weits.models import WeitPhoto
 from weits.constants import WeitPhotoStatus
+from weits.models import WeitPhoto
 
 
 class WeitTest(TestCase):
@@ -31,7 +29,7 @@ class WeitTest(TestCase):
         self.create_like(user2, self.weit)
         self.assertEqual(self.weit.like_set.count(), 2)
 
-    def test_weit_photo(self):
+    def test_create_photo(self):
         photo = WeitPhoto.objects.create(
             weit=self.weit,
             user=self.user,
@@ -40,3 +38,15 @@ class WeitTest(TestCase):
         self.assertEqual(photo.user, self.user)
         self.assertEqual(photo.status, WeitPhotoStatus.PENDING)
         self.assertEqual(self.weit.weitphoto_set.count(), 1)
+
+    def test_cache_weit_in_redis(self):
+        weit = self.create_weit(self.user)
+        conn = RedisClient.get_connection()
+        serialized_data = DjangoModelSerializer.serialize(weit)
+        conn.set(f'weit:{weit.id}', serialized_data)
+        data = conn.get('weit:not_exists')
+        self.assertEqual(data, None)
+
+        data = conn.get(f'weit:{weit.id}')
+        cached_weit = DjangoModelSerializer.deserialize(data)
+        self.assertEqual(weit, cached_weit)
