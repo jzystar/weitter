@@ -25,10 +25,16 @@ class WeitViewSet(viewsets.GenericViewSet):
         #     user_id=request.query_params['user_id']
         # ).prefetch_related('user').order_by('-created_at')
         # use cache for listing weits
-        weits = WeitService.get_cached_weits(user_id=request.query_params['user_id'])
-        weits = self.paginate_queryset(weits)
+        user_id = request.query_params['user_id']
+        cached_weits = WeitService.get_cached_weits(user_id)
+        page = self.paginator.paginate_cached_list(cached_weits, request)
+        # page is None means 目前数据不在cache里（超过了cache的size), 直接去数据库取
+        if page is None:
+            queryset = Weit.objects.filter(user_id=user_id).order_by('-created_at')
+            page = self.paginate_queryset(queryset)
+
         serializer = WeitSerializer(
-            weits,
+            page,
             context={'request': request},
             many=True,
         )
