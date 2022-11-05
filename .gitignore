@@ -130,7 +130,8 @@ dmypy.json
 .vagrant
 .pycharm_helpers
 .idea
-.swp
-.jpg
+*.swp
+*.jpg
 media/
 .DS_Store
+dump.rdb

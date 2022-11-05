@@ -7,6 +7,7 @@ from utils.listeners import invalidate_object_cache
 from utils.memcached_helper import MemcachedHelper
 from utils.time_helpers import utc_now
 from weits.constants import WeitPhotoStatus, WEIT_PHOTO_STATUS_CHOICES
+from weits.listeners import push_weit_to_cache
 
 
 class Weit(models.Model):
@@ -74,5 +75,14 @@ class WeitPhoto(models.Model):
     def __str__(self):
         return f'{self.weit.id}: {self.file}'
 
+
 post_save.connect(invalidate_object_cache, sender=Weit)
 pre_delete.connect(invalidate_object_cache, sender=Weit)
+# 目前没有修改操作，但是若加入weit的修改，这里会有问题，save会直接向redis lpush修改后的weit，
+# 而不是修改redis中对应的那个weit，若做修改的化我们很难从redis中定位到要修改的那个weit进行更新
+# 解决方式：
+# 1。跟memcached一样，有修改就直接把对应的redis cache 删掉
+# 2。用二级缓存，我们一级缓存redis只存该用户的weit id的list，二级缓存memcached存储weit的所有内容
+# 一级缓存redis可以存list的特性来存一串id，通过这个id再去二级缓存memcache里面拿，每次更新都只更新memcache的数据，
+# 不过每次memcache取数据时，需要检查该id是否已经缓存了，没有的话需要记录缺失的ids再去db中取
+post_save.connect(push_weit_to_cache, sender=Weit)
