@@ -24,5 +24,7 @@ class NewsFeed(models.Model):
         return MemcachedHelper.get_object_through_cache(Weit, self.weit_id)
 
 
-# bulk_create will not trigger this post_save signal
+# 1. bulk_create will not trigger this post_save signal
+# 2. 若某个user的信息改变了，比如昵称，那我们redis cache中的数据不会有负面影响，因为newsfeed是存的user_id和weit_id，
+# 对于其中weit中的user，会去找cached_user和cached_profile，他们都会在model层面更新时invalidate，所以不会有影响。
 post_save.connect(push_newsfeed_to_cache, sender=NewsFeed)

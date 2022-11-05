@@ -6,6 +6,8 @@ from utils.redis_helper import RedisHelper
 
 class NewsFeedServices(object):
 
+    # 对于明星，粉丝很多，比如超过1kw的，每个weit都会fanout给所有的followers，这样会有很大空间和时间开销
+    # 所以对于明星用户来讲，还是尽量用pull的机制来做，
     @classmethod
     def fanout_to_followers(cls, weit):
         followers = FriendshipServices.get_followers(weit.user)
