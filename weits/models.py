@@ -21,6 +21,11 @@ class Weit(models.Model):
     content = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # 记得设置null=True, 否则default=0会将原有数据都一个个设置为0，migration会很慢，锁死单张表，影响正常用户创建weit
+    # 后面通过离线脚本来慢慢的refill数据
+    likes_count = models.IntegerField(default=0, null=True)
+    comments_count = models.IntegerField(default=0, null=True)
+
     class Meta:
         index_together = (('user', 'created_at'), )
         ordering = ('user', '-created_at')
