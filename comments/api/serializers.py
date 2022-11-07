@@ -29,7 +29,8 @@ class CommentSerializer(serializers.ModelSerializer):
         return LikeService.has_liked(self.context['request'].user, obj)
 
     def get_likes_count(self, obj):
-        return obj.like_set.count()
+        # return obj.like_set.count()
+        return obj.like_count
 
 
 class CommentSerializerForCreate(serializers.ModelSerializer):

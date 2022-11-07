@@ -35,10 +35,12 @@ class WeitSerializer(serializers.ModelSerializer):
 
     def get_comments_count(self, obj):
         # name_set track the 'name' objects whose foreign are weit, 反查机制
-        return obj.comment_set.count()
+        # return obj.comment_set.count()
+        return obj.comments_count
 
     def get_likes_count(self, obj):
-        return obj.like_set.count()
+        # return obj.like_set.count()
+        return obj.likes_count
 
     def get_photo_urls(self, obj):
         photo_urls = []
