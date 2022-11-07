@@ -1,7 +1,7 @@
 def incr_likes_count(sender, instance, created, **kwargs):
+    from comments.models import Comment
     from django.db.models import F
     from weits.models import Weit
-    from comments.models import Comment
 
     if not created:
         return
@@ -29,9 +29,9 @@ def incr_likes_count(sender, instance, created, **kwargs):
 
 
 def decr_likes_count(sender, instance, **kwargs):
+    from comments.models import Comment
     from django.db.models import F
     from weits.models import Weit
-    from comments.models import Comment
 
     model_class = instance.content_type.model_class()
     if model_class != Weit:

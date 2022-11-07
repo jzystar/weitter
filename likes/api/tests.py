@@ -219,3 +219,20 @@ class LikeApiTests(TestCase):
         self.assertEqual(response.data['likes'][0]['user']['id'], self.user1.id)
         self.assertEqual(response.data['likes'][1]['user']['id'], self.user2.id)
 
+    def test_likes_count(self):
+        weit = self.create_weit(self.user1)
+        data = {'content_type': 'weit', 'object_id': weit.id}
+        self.user1_client.post(LIKE_BASE_URL, data)
+
+        weit_url = WEIT_DETAIL_API.format(weit.id)
+        response = self.user1_client.get(weit_url)
+        self.assertEqual(response.data['likes_count'], 1)
+        weit.refresh_from_db()
+        self.assertEqual(weit.likes_count, 1)
+
+        self.user1_client.post(LIKE_BASE_URL + 'cancel/', data)
+        weit.refresh_from_db()
+        self.assertEqual(weit.likes_count, 0)
+        response = self.user2_client.get(weit_url)
+        self.assertEqual(response.data['likes_count'], 0)
+        
