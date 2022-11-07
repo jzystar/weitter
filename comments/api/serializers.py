@@ -30,7 +30,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         # return obj.like_set.count()
-        return obj.like_count
+        return obj.likes_count
 
 
 class CommentSerializerForCreate(serializers.ModelSerializer):
