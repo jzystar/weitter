@@ -235,3 +235,40 @@ class LikeApiTests(TestCase):
         self.assertEqual(weit.likes_count, 0)
         response = self.user2_client.get(weit_url)
         self.assertEqual(response.data['likes_count'], 0)
+
+    def test_likes_count_with_cache(self):
+        weit = self.create_weit(self.user1)
+        self.create_newsfeed(self.user1, weit)
+        self.create_newsfeed(self.user2, weit)
+        data = {'content_type': 'weit', 'object_id': weit.id}
+        weit_url = WEIT_DETAIL_API.format(weit.id)
+        for i in range(3):
+            _, client = self.create_user_and_client('testuser{}'.format(i))
+            client.post(LIKE_BASE_URL, data)
+            # check weit api
+            response = client.get(weit_url)
+            self.assertEqual(response.data['likes_count'], i + 1)
+            weit.refresh_from_db()
+            self.assertEqual(weit.likes_count, i + 1)
+
+        self.user2_client.post(LIKE_BASE_URL, data)
+        response = self.user2_client.get(weit_url)
+        self.assertEqual(response.data['likes_count'], 4)
+        weit.refresh_from_db()
+        self.assertEqual(weit.likes_count, 4)
+
+        # check newsfeed api
+        newsfeed_url = NEWSFEED_LIST_API
+        response = self.user1_client.get(newsfeed_url)
+        self.assertEqual(response.data['results'][0]['weit']['likes_count'], 4)
+        response = self.user2_client.get(newsfeed_url)
+        self.assertEqual(response.data['results'][0]['weit']['likes_count'], 4)
+
+        # user2 canceled like
+        self.user2_client.post(LIKE_CANCEL_URL, data)
+        weit.refresh_from_db()
+        self.assertEqual(weit.likes_count, 3)
+        response = self.user1_client.get(weit_url)
+        self.assertEqual(response.data['likes_count'], 3)
+        response = self.user2_client.get(newsfeed_url)
+        self.assertEqual(response.data['results'][0]['weit']['likes_count'], 3)

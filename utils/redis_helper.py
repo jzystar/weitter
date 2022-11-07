@@ -48,3 +48,50 @@ class RedisHelper:
         conn.lpush(key, serialized_data)
         # redis 的区间是开区间，包括最后一个
         conn.ltrim(key, 0, settings.REDIS_LIST_LENGTH_LIMIT - 1)
+
+    @classmethod
+    def get_count_key(cls, obj, attr):
+        return '{}.{}:{}'.format(obj.__class__.__name__, attr, obj.id)
+
+    @classmethod
+    def incr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_count_key(obj, attr)
+        if conn.exists(key):
+            return conn.incr(key)
+
+        # back fill cache from db
+        # 不执行+1操作，因为必须保证调用incr_count之前，数据库层面obj.attr已经+1了
+        obj.refresh_from_db()
+        conn.set(key, getattr(obj, attr))
+        conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+        return getattr(obj, attr)
+
+    @classmethod
+    def decr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_count_key(obj, attr)
+        if conn.exists(key):
+            return conn.decr(key)
+        # 不执行-1操作，因为必须保证调用incr_count之前，数据库层面obj.attr已经-1了
+        # 从这里我们也能看出，每次更新cache时，若cache不在，则直接去数据库里面取，此时无须更改，因为数据库已经是最新的
+        # 若cache存在，则针对cache进行更新改动
+        obj.refresh_from_db()
+        conn.set(key, getattr(obj, attr))
+        conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+        return getattr(obj, attr)
+
+    @classmethod
+    def get_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_count_key(obj, attr)
+        count = conn.get(key)
+        if count is not None:
+            return int(count)
+
+        obj.refresh_from_db()
+        count = getattr(obj, attr)
+        conn.set(key, count)
+        return count
+
+
