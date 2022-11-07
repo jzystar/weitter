@@ -1,7 +1,7 @@
-from rest_framework.pagination import BasePagination
-from rest_framework.response import Response
 from dateutil import parser
 from django.conf import settings
+from rest_framework.pagination import BasePagination
+from rest_framework.response import Response
 
 
 class EndlessPagination(BasePagination):
@@ -15,7 +15,6 @@ class EndlessPagination(BasePagination):
         pass
 
     def paginate_ordered_list(self, reversed_ordered_list, request):
-        # now we assume that all data are cached in redis, TODO: cache size limitation
         if 'created_at__gt' in request.query_params:
             created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
             objects = []
