@@ -235,4 +235,3 @@ class LikeApiTests(TestCase):
         self.assertEqual(weit.likes_count, 0)
         response = self.user2_client.get(weit_url)
         self.assertEqual(response.data['likes_count'], 0)
-        
