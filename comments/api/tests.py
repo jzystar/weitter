@@ -157,5 +157,41 @@ class CommentApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['results'][0]['weit']['comments_count'], 2)
 
+    def test_comments_count_with_cache(self):
+        weit_url = WEIT_DETAIL_API.format(self.weit.id)
+        response = self.user1_client.get(weit_url)
+        self.assertEqual(self.weit.comments_count, 0)
+        self.assertEqual(response.data['comments_count'], 0)
 
+        data = {'weit_id': self.weit.id, 'content': 'a comment'}
+        for i in range(2):
+            _, client = self.create_user_and_client('user{}'.format(i))
+            client.post(COMMENT_URL, data)
+            response = client.get(weit_url)
+            self.assertEqual(response.data['comments_count'], i + 1)
+            self.weit.refresh_from_db()
+            self.assertEqual(self.weit.comments_count, i + 1)
+
+        comment_data = self.user2_client.post(COMMENT_URL, data).data
+        response = self.user2_client.get(weit_url)
+        self.assertEqual(response.data['comments_count'], 3)
+        self.weit.refresh_from_db()
+        self.assertEqual(self.weit.comments_count, 3)
+
+        # update comment shouldn't update comments_count
+        comment_url = COMMENT_DETAIL_URL.format(comment_data['id'])
+        response = self.user2_client.put(comment_url, {'content': 'updated comment'})
+        self.assertEqual(response.status_code, 200)
+        response = self.user2_client.get(weit_url)
+        self.assertEqual(response.data['comments_count'], 3)
+        self.weit.refresh_from_db()
+        self.assertEqual(self.weit.comments_count, 3)
+
+        # delete a comment will update comments_count
+        response = self.user2_client.delete(comment_url)
+        self.assertEqual(response.status_code, 200)
+        response = self.user1_client.get(weit_url)
+        self.assertEqual(response.data['comments_count'], 2)
+        self.weit.refresh_from_db()
+        self.assertEqual(self.weit.comments_count, 2)
 

@@ -7,6 +7,8 @@ from rest_framework.exceptions import ValidationError
 from weits.constants import WEIT_PHOTOS_UPLOAD_LIMIT
 from weits.models import Weit
 from weits.services import WeitService
+from utils.redis_helper import RedisHelper
+
 
 
 class WeitSerializer(serializers.ModelSerializer):
@@ -36,11 +38,11 @@ class WeitSerializer(serializers.ModelSerializer):
     def get_comments_count(self, obj):
         # name_set track the 'name' objects whose foreign are weit, 反查机制
         # return obj.comment_set.count()
-        return obj.comments_count
+        return RedisHelper.get_count(obj, 'comments_count')
 
     def get_likes_count(self, obj):
         # return obj.like_set.count()
-        return obj.likes_count
+        return RedisHelper.get_count(obj, 'likes_count')
 
     def get_photo_urls(self, obj):
         photo_urls = []

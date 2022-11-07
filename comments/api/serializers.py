@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 
 from likes.serivces import LikeService
 from weits.models import Weit
+from utils.redis_helper import RedisHelper
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -30,7 +31,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         # return obj.like_set.count()
-        return obj.likes_count
+        return RedisHelper.get_count(obj, 'likes_count')
 
 
 class CommentSerializerForCreate(serializers.ModelSerializer):
