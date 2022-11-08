@@ -28,6 +28,7 @@ def incr_likes_count(sender, instance, created, **kwargs):
     else:
         Weit.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') + 1)
     # update likes_count redis cache
+    # TODO: Comment has not been cached, so right now we only cache likes_count for comment is meaningless
     RedisHelper.incr_count(instance.content_object, 'likes_count')
 
 
@@ -47,5 +48,6 @@ def decr_likes_count(sender, instance, **kwargs):
     # UPDATE can not trigger post_save for weit
     else:
         Weit.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') - 1)
+    # TODO: Comment has not been cached, so right now we only cache likes_count for comment is meaningless
     RedisHelper.decr_count(instance.content_object, 'likes_count')
 
