@@ -190,6 +190,14 @@ REDIS_DB = 0 if TESTING else 1
 REDIS_KEY_EXPIRE_TIME = 7 * 86400
 REDIS_LIST_LENGTH_LIMIT = 200 if not TESTING else 20
 
+# https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html?highlight=django
+# Celery configuration
+# use this command to run workers
+# celery -A weitter worker -l INFO
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/2' if not TESTING else 'redis://127.0.0.1:6379/0'
+CELERY_TIMEZONE = 'UTC'
+# 测试时直接运行任务，不需要异步执行了
+CELERY_TASK_ALWAYS_EAGER = TESTING
 
 try:
     from .local_settings import *
