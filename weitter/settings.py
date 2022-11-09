@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import sys
 import os
 from pathlib import Path
+from kombu import Queue
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -198,6 +199,22 @@ CELERY_BROKER_URL = 'redis://127.0.0.1:6379/2' if not TESTING else 'redis://127.
 CELERY_TIMEZONE = 'UTC'
 # 测试时直接运行任务，不需要异步执行了
 CELERY_TASK_ALWAYS_EAGER = TESTING
+
+# 为了让不同worker运行不同类型任务，可以设置环境变量来判断运行的哪个queue
+# if os.environ.get('WORKER_TYPE') == 'newsfeeds':
+#     CELERY_QUEUES = (
+#         Queue('newsfeeds', routing_key='newsfeeds'),
+#     )
+# else:
+#     CELERY_QUEUES = (
+#         Queue('default', routing_key='default'),
+#     )
+
+CELERY_QUEUES = (
+    Queue('default', routing_key='default'),
+    Queue('newsfeeds', routing_key='newsfeeds'),
+)
+
 
 try:
     from .local_settings import *

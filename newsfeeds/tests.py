@@ -2,6 +2,8 @@ from newsfeeds.services import NewsFeedServices
 from testing.testcases import TestCase
 from utils.redis_client import RedisClient
 from weitter.cache import USER_NEWSFEEDS_PATTERN
+from newsfeeds.tasks import fanout_newsfeed_main_task
+from newsfeeds.models import NewsFeed
 
 
 class NewsFeedServiceTests(TestCase):
@@ -47,3 +49,41 @@ class NewsFeedServiceTests(TestCase):
 
         feeds = NewsFeedServices.get_cached_newsfeeds(self.user1.id)
         self.assertEqual([f.id for f in feeds], [feed2.id, feed1.id])
+
+
+class NewsFeedTaskTests(TestCase):
+
+    def setUp(self):
+        self.clear_cache()
+        self.user1 = self.create_user('user1')
+        self.user2 = self.create_user('user2')
+
+    def test_fanout_main_task(self):
+        weit = self.create_weit(self.user1, 'weit 1')
+        self.create_friendship(self.user2, self.user1)
+        msg = fanout_newsfeed_main_task(weit.id, self.user1.id)
+        self.assertEqual(msg, '1 newsfeeds going to fanout, 1 batches created.')
+        self.assertEqual(1 + 1, NewsFeed.objects.count())
+        cached_list = NewsFeedServices.get_cached_newsfeeds(self.user1.id)
+        self.assertEqual(len(cached_list), 1)
+
+        for i in range(2):
+            user = self.create_user('someone{}'.format(i))
+            self.create_friendship(user, self.user1)
+        weit = self.create_weit(self.user1, 'weit 2')
+        msg = fanout_newsfeed_main_task(weit.id, self.user1.id)
+        self.assertEqual(msg, '3 newsfeeds going to fanout, 1 batches created.')
+        self.assertEqual(4 + 2, NewsFeed.objects.count())
+        cached_list = NewsFeedServices.get_cached_newsfeeds(self.user1.id)
+        self.assertEqual(len(cached_list), 2)
+
+        user = self.create_user('another user')
+        self.create_friendship(user, self.user1)
+        weit = self.create_weit(self.user1, 'weit 3')
+        msg = fanout_newsfeed_main_task(weit.id, self.user1.id)
+        self.assertEqual(msg, '4 newsfeeds going to fanout, 2 batches created.')
+        self.assertEqual(8 + 3, NewsFeed.objects.count())
+        cached_list = NewsFeedServices.get_cached_newsfeeds(self.user1.id)
+        self.assertEqual(len(cached_list), 3)
+        cached_list = NewsFeedServices.get_cached_newsfeeds(self.user2.id)
+        self.assertEqual(len(cached_list), 3)

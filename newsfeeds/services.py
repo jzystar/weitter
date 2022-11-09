@@ -1,5 +1,5 @@
 from newsfeeds.models import NewsFeed
-from newsfeeds.tasks import fanout_newsfeed_task
+from newsfeeds.tasks import fanout_newsfeed_main_task
 from utils.redis_helper import RedisHelper
 from weitter.cache import USER_NEWSFEEDS_PATTERN
 
@@ -18,7 +18,7 @@ class NewsFeedServices(object):
         # 无delay是同步任务
         # fanout_newsfeed_task(weit.id)
         # 加delay为异步任务, testing 时由于配置过了，会不用delay直接同步执行
-        fanout_newsfeed_task.delay(weit.id)
+        fanout_newsfeed_main_task.delay(weit.id, weit.user_id)
 
     @classmethod
     def get_cached_newsfeeds(cls, user_id):

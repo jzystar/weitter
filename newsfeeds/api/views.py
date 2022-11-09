@@ -18,7 +18,7 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
         page = self.paginator.paginate_cached_list(cached_newsfeeds, request)
         # page is None means 目前数据不在cache里（超过了cache的size), 直接去数据库取
         if page is None:
-            queryset = NewsFeed.objects.filter(user=request.user)
+            queryset = self.get_queryset()
             page = self.paginate_queryset(queryset)
 
         serializer = NewsFeedSerializer(
