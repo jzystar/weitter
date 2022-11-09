@@ -9,7 +9,7 @@ cache = caches['testing'] if settings.TESTING else caches['default']
 class FriendshipServices(object):
 
     @classmethod
-    def get_followers(self, user):
+    def get_followers(cls, user):
         # following not good because in return lines, query will be run multiple times to get each from_user
         # friendships = Friendship.objects.filter(to_user=user)
         # return [friendship.from_user for friendship in friendships]
@@ -23,6 +23,11 @@ class FriendshipServices(object):
 
         friendships = Friendship.objects.filter(to_user=user).prefetch_related('from_user')
         return [friendship.from_user for friendship in friendships]
+
+    @classmethod
+    def get_followers_id(cls, user_id):
+        friendships = Friendship.objects.filter(to_user_id=user_id)
+        return [friendship.from_user_id for friendship in friendships]
 
     @classmethod
     def get_following_user_id_set(cls, from_user_id):
