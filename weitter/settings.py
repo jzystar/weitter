@@ -235,11 +235,13 @@ RATELIMIT_ENABLE = not TESTING
 # 3。 修改 conf/hbase-site.xml 设置 property： hbase.rootdir和hbase.zookeeper.property.dataDir的value值作为存放目录
 # 4。 sudo bash bin/start-hbase.sh 启动， bin/hbase shell 查看是否work，
 # 5。 http://localhost:16010/ to check if it works， docker需要端口映射
-# 6。 安装thrift，下载 https://thrift.apache.org/download.html
+# 6。 为了python可以跟hbase交互，需要安装thrift，下载 https://thrift.apache.org/download.html
 # 7。 下载依赖包 sudo apt-get install automake bison flex g++ git libboost-all-dev libevent-dev libssl-dev libtool make pkg-config
 # 8。 解压thrift后编译安装 sudo ./configure & make & make install (因为只用于python，所以对于configure中的其他模块可以不安装，加上参数--with-xxx=no)
 # 9。 启动hbase的thrift服务 bin/hbase-daemon.sh start thrift
 # 10。安装python库 happybase
+
+HBASE_HOST = '127.0.0.1'
 
 try:
     from .local_settings import *
