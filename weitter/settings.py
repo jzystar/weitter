@@ -169,6 +169,8 @@ MEDIA_ROOT = 'media/'
 # https://docs.djangoproject.com/en/3.1/topics/cache/
 # apt-get install memcached
 # pip install python-memcached
+# /usr/bin/memcached -u memcache -m 1024 -p 11211 -l 0.0.0.0 -d start
+# telnet 127.0.0.1 11211 to check if it works
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -192,6 +194,8 @@ CACHES = {
 # Redis
 # sudo apt-get install redis
 # install python redis client: pip install redis
+# run redis: nohup redis-server > /dev/null 2>&1 &
+# redis-cli to see if it's running
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379
 REDIS_DB = 0 if TESTING else 1
@@ -201,7 +205,7 @@ REDIS_LIST_LENGTH_LIMIT = 200 if not TESTING else 20
 # https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html?highlight=django
 # Celery configuration
 # use this command to run workers
-# celery -A weitter worker -l INFO
+# nohup celery -A weitter worker -l INFO > celery.logs &
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/2' if not TESTING else 'redis://127.0.0.1:6379/0'
 CELERY_TIMEZONE = 'UTC'
 # 测试时直接运行任务，不需要异步执行了
@@ -224,6 +228,20 @@ CELERY_QUEUES = (
 RATELIMIT_USE_CACHE = 'ratelimit'
 RATELIMIT_CACHE_PREFIX = 'rl'
 RATELIMIT_ENABLE = not TESTING
+
+# Hbase 安装
+# 1。 安装jdk 8，设置java环境变量 https://dlcdn.apache.org/hbase/
+# 2。 解压后修改 hbase配置文件：conf/hbase-env.sh 修改 export JAVA_HOME
+# 3。 修改 conf/hbase-site.xml 设置 property： hbase.rootdir和hbase.zookeeper.property.dataDir的value值作为存放目录
+# 4。 sudo bash bin/start-hbase.sh 启动， bin/hbase shell 查看是否work，
+# 5。 http://localhost:16010/ to check if it works， docker需要端口映射
+# 6。 为了python可以跟hbase交互，需要安装thrift，下载 https://thrift.apache.org/download.html
+# 7。 下载依赖包 sudo apt-get install automake bison flex g++ git libboost-all-dev libevent-dev libssl-dev libtool make pkg-config
+# 8。 解压thrift后编译安装 sudo ./configure & make & make install (因为只用于python，所以对于configure中的其他模块可以不安装，加上参数--with-xxx=no)
+# 9。 启动hbase的thrift服务 bin/hbase-daemon.sh start thrift
+# 10。安装python库 happybase
+
+HBASE_HOST = '127.0.0.1'
 
 try:
     from .local_settings import *

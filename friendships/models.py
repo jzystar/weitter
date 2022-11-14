@@ -4,6 +4,7 @@ from django.db.models.signals import pre_delete, post_save
 from friendships.listeners import friendship_changed
 from utils.memcached_helper import MemcachedHelper
 
+
 class Friendship(models.Model):
     from_user = models.ForeignKey(
         User,
