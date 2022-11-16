@@ -3,6 +3,7 @@ class HBaseField:
 
     def __init__(self, reverse=False, column_family=None):
         self.reverse = reverse
+        # column_family 来表示此field是column field而不是rowkey
         self.column_family = column_family
         #TODO: 增加is_required 属性，默认为true， default属性，默认为None， 并在HBaseModel中做相应处理，抛出相应异常
 
