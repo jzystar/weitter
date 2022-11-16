@@ -10,7 +10,6 @@ from weits.services import WeitService
 from utils.redis_helper import RedisHelper
 
 
-
 class WeitSerializer(serializers.ModelSerializer):
     # need to get not only user id but also user other info
     user = UserSerializerForWeit(source='cached_user')
