@@ -3,6 +3,7 @@ from django.core.cache import caches
 
 cache = caches['testing'] if settings.TESTING else caches['default']
 
+
 class MemcachedHelper:
     @classmethod
     def get_key(cls, model_class, object_id):
