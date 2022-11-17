@@ -212,8 +212,8 @@ class HBaseModel:
         """
         仅用于测试的创建表
         """
-        # if not settings.TESTING:
-        #     raise Exception('You cannot create table outside of unit tests')
+        if not settings.TESTING:
+            raise Exception('You cannot create table outside of unit tests')
         conn = HBaseClient.get_connection()
         # convert bytes to string
         tables = [table.decode('utf-8') for table in conn.tables()]
