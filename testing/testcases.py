@@ -3,19 +3,38 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import caches
 from django.test import TestCase as DjangoTestCase
+from django_hbase.models import HBaseModel
+from friendships.models import Friendship
 from likes.models import Like
 from newsfeeds.models import NewsFeed
 from rest_framework.test import APIClient
 from utils.redis_client import RedisClient
 from weits.models import Weit
-from friendships.models import Friendship
+
 
 class TestCase(DjangoTestCase):
+    hbase_table_created = False
+
+    def setUp(self):
+        self.clear_cache()
+        try:
+            self.hbase_table_created = True
+            for hbase_models_class in HBaseModel.__subclasses__():
+                hbase_models_class.create_table()
+        except Exception:
+            self.tearDown()
+            # 继续抛出异常
+            raise
+
+    def tearDown(self):
+        if not self.hbase_table_created:
+            return
+        for hbase_models_class in HBaseModel.__subclasses__():
+            hbase_models_class.drop_table()
 
     def clear_cache(self):
         caches['testing'].clear()
         RedisClient.clear()
-
 
     @property
     def anonymous_client(self):

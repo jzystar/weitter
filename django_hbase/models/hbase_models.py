@@ -1,16 +1,13 @@
-from django_hbase.models import (
-    HBaseField,
-    IntegerField,
-    TimestampField,
-    BadRowKeyError,
-    EmptyColumnError,
-)
+from .exceptions import EmptyColumnError, BadRowKeyError
+from .fields import HBaseField, IntegerField, TimestampField
+from django.conf import settings
 from django_hbase.client import HBaseClient
 
 
 # 需要理解透cls，self 即类和实例之间区别，万物皆对象，cls和self是不同的对象，那么类属性和实例的属性则是分开的,
 # 这里可以把cls和self当成不同实例，cls用来取Field对应的名称和类型，self用来给Field对应名称来赋一个新值
 # 也需要理解__dict__中变量名和值的映射
+# 重要：目前版本，传入happybase的参数字符串不需要encode成bytes了（比如row_key，value等），但是从hbase读取到的值还是bytes，注意转换成相应类型
 class HBaseModel:
     class Meta:
         row_key = ()
@@ -66,8 +63,8 @@ class HBaseModel:
         if field_type.reverse:
             field_value = field_value[::-1]
         if field_type.field_type in [IntegerField.field_type, TimestampField.field_type]:
-            field_value = int(field_value)
-        return field_value
+            return int(field_value)
+        return field_value.decode('utf-8')
 
     @classmethod
     def serialize_row_key(cls, data):
@@ -121,7 +118,7 @@ class HBaseModel:
         """
         row_data = {}
         field_maps = cls.get_field_maps()
-        for field_name, field_type in field_maps:
+        for field_name, field_type in field_maps.items():
             if field_type.column_family:
                 column_key = "{}:{}".format(field_type.column_family, field_name)
                 value = data.get(field_name)
@@ -142,7 +139,7 @@ class HBaseModel:
         把HBase中存储的row_key，row_data的格式转化为HbaseModel的实例对象，算是一个对于row_key和row_data两部分的反序列化
         其中从api拿到的rowkey，cloumn_key的值是二进制字节存储，具体value是字符串
         """
-        if row_data is None:
+        if len(row_data) == 0:
             return None
         field_data_maps = cls.deserialize_row_key(row_key)
         for column_key, column_value in row_data.items():
@@ -162,9 +159,7 @@ class HBaseModel:
         连接HBase数据库，获取对应数据表table
         """
         conn = HBaseClient.get_connection()
-        if not cls.Meta.table_name:
-            raise NotImplementedError("Missing table_name in HBase Meta class")
-        return conn.table(cls.Meta.table_name)
+        return conn.table(cls.get_table_name())
 
     @classmethod
     def get(cls, **kwargs):
@@ -188,6 +183,41 @@ class HBaseModel:
         """
         用类似django model的方式，以类方法创建一个实例，如XXXHBaseModel.create(a=x,b=y,c=z)
         """
-        instance = cls.__init__(**kwargs)
+        instance = cls(**kwargs)
         instance.save()
         return instance
+
+    @classmethod
+    def get_table_name(cls):
+        if not cls.Meta.table_name:
+            raise NotImplementedError("Missing table name in HBaseModel Meta class")
+        if settings.TESTING:
+            return 'test_{}'.format(cls.Meta.table_name)
+        return cls.Meta.table_name
+
+    @classmethod
+    def drop_table(cls):
+        if not settings.TESTING:
+            raise Exception('You cannot create table outside of unit tests')
+        conn = HBaseClient.get_connection()
+        conn.delete_table(cls.get_table_name(), True)
+
+    @classmethod
+    def create_table(cls):
+        """
+        仅用于测试的创建表
+        """
+        if not settings.TESTING:
+            raise Exception('You cannot create table outside of unit tests')
+        conn = HBaseClient.get_connection()
+        # convert bytes to string
+        tables = [table.decode('utf-8') for table in conn.tables()]
+        if cls.get_table_name() in tables:
+            return
+        column_families = {
+            field_type.column_family: dict()
+            for field_name, field_type in cls.get_field_maps().items()
+            if field_type.column_family is not None
+        }
+        conn.create_table(cls.get_table_name(), column_families)
+
