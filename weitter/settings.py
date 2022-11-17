@@ -240,7 +240,8 @@ RATELIMIT_ENABLE = not TESTING
 # 8。 解压thrift后编译安装 sudo ./configure & make & make install (因为只用于python，所以对于configure中的其他模块可以不安装，加上参数--with-xxx=no)
 # 9。 启动hbase的thrift服务 bin/hbase-daemon.sh start thrift
 # 10。安装python库 happybase
-
+# 11. thrift 连接默认60s会timeout断开，可以去conf/hbase-site.xml中设置hbase.thrift.server.socket.read.timeout这个property来更改，记得重启thrift服务
+# 12。一段时间后hbase会将所有连接（不管有没有在使用）都默认为idle的状态导致连接再次断开，可以设置hbase.thrift.connection.max-idletime去更改idle的最大时间，记得重启thrift服务
 HBASE_HOST = '127.0.0.1'
 
 try:
