@@ -64,13 +64,14 @@ class HBaseModel:
             field_value = field_value[::-1]
         if field_type.field_type in [IntegerField.field_type, TimestampField.field_type]:
             return int(field_value)
-        return field_value.decode('utf-8')
+        return field_value
 
     @classmethod
-    def serialize_row_key(cls, data):
+    def serialize_row_key(cls, data, is_prefix=False):
         """
         序列化row key成为字节格式，先转变为string，再encode到bytes
         序列化格式为，多个属性的值用冒号:分割
+        is_prefix 为True则只serialize row_key的前缀部分然后跳出循环，不需要对所有row_key组成部分serialize
         {key1: val1} -> b"val1"
         {key1: val1, key2: val2} -> b"val1:val2"
         """
@@ -81,7 +82,10 @@ class HBaseModel:
         for key in cls.Meta.row_key:
             value = data.get(key)
             if not value:
-                raise BadRowKeyError(f'{key} is missing in row key of {cls.__name__}')
+                if not is_prefix:
+                    raise BadRowKeyError(f'{key} is missing in row key of {cls.__name__}')
+                # 若是前缀的话，遇到空的部分直接跳出返回
+                break
             field_type = field_maps.get(key)
             value = cls.serialize_field(field_type, value)
             # 对于连接符":"的判断放到serialize_field_value() 中去？
@@ -149,6 +153,7 @@ class HBaseModel:
             # 没找到:时，直接把整个key当作field name
             field_name = field_name[index + 1:]
             # 把data中的value也反序列化
+            column_value = column_value.decode('utf-8')
             field_value = cls.deserialize_field(field_name, column_value)
             field_data_maps[field_name] = field_value
         return cls(**field_data_maps)
@@ -165,8 +170,8 @@ class HBaseModel:
     def get(cls, **kwargs):
         row_key = cls.serialize_row_key(kwargs)
         table = cls.get_table()
-        row = table.row(row_key)
-        return cls.init_from_row(row_key, row)
+        row_data = table.row(row_key)
+        return cls.init_from_row(row_key, row_data)
 
     def save(self):
         """
@@ -207,8 +212,8 @@ class HBaseModel:
         """
         仅用于测试的创建表
         """
-        if not settings.TESTING:
-            raise Exception('You cannot create table outside of unit tests')
+        # if not settings.TESTING:
+        #     raise Exception('You cannot create table outside of unit tests')
         conn = HBaseClient.get_connection()
         # convert bytes to string
         tables = [table.decode('utf-8') for table in conn.tables()]
@@ -220,4 +225,44 @@ class HBaseModel:
             if field_type.column_family is not None
         }
         conn.create_table(cls.get_table_name(), column_families)
+
+    @classmethod
+    def serialize_row_key_from_tuple(cls, row_key_tuple):
+        """
+        当我们以tuple而且不是dict形式传入row_key时，进行serialize，支持可以只serialize前缀部分
+        """
+        if row_key_tuple is None:
+            return None
+        data = {
+            key: value
+            for key, value in zip(cls.Meta.row_key, row_key_tuple)
+        }
+        return cls.serialize_row_key(data, is_prefix=True)
+
+    @classmethod
+    def filter(cls, start=None, stop=None, prefix=None, limit=None, reverse=False):
+        """
+        对表进行scan
+        start, stop, prefix是针对于row_key，传入一个tuple，区间start，stop 左闭右开 [)，与python列表表示方式一致
+        比如row_key有两部分（id， timestamp），可以传入start=（1, 15231xxx），
+        不需要使用dict，因为我们在使用时并不关心row_key组成部分的名字，而只使用row_key组成部分的值
+        limit 最大返回数量
+        是否反向scan，比如start=10, stop=1, reverse=True则从10到1反向返回值
+        """
+        row_start = cls.serialize_row_key_from_tuple(start)
+        row_stop = cls.serialize_row_key_from_tuple(stop)
+        row_prefix = cls.serialize_row_key_from_tuple(prefix)
+
+        # scan table
+        table = cls.get_table()
+        rows = table.scan(row_start, row_stop, row_prefix, limit=limit, reverse=reverse)
+
+        results = []
+        for row_key, row_data in rows:
+            instance = cls.init_from_row(row_key, row_data)
+            results.append(instance)
+        return results
+
+
+
 
