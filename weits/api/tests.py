@@ -13,7 +13,7 @@ class WeitApiTests(TestCase):
 
     def setUp(self):
         #self.anonymous_client = APIClient()
-        self.clear_cache()
+        super(WeitApiTests, self).setUp()
         self.user1 = self.create_user('user1', 'user1@weitter.com')
         self.weits1 = [
             self.create_weit(self.user1, f'{self.user1.username} post {i} content')
