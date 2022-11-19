@@ -12,7 +12,7 @@ NOTIFICATION_URL_MARKED = '/api/notifications/mark-all-as-read/'
 class NotificationTests(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(NotificationTests, self).setUp()
         self.user1, self.user1_client = self.create_user_and_client('user1')
         self.user2, self.user2_client = self.create_user_and_client('user2')
         self.user2_weit = self.create_weit(self.user2)

@@ -263,6 +263,8 @@ class HBaseModel:
             results.append(instance)
         return results
 
-
-
-
+    @classmethod
+    def delete(cls, **kwargs):
+        row_key = cls.serialize_row_key(kwargs)
+        table = cls.get_table()
+        return table.delete(row_key)

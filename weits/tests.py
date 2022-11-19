@@ -12,7 +12,7 @@ from weitter.cache import USER_WEITS_PATTERN
 class WeitTest(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(WeitTest, self).setUp()
         self.user = self.create_user('user1')
         self.weit = self.create_weit(self.user)
 
@@ -56,7 +56,7 @@ class WeitTest(TestCase):
 
 class WeitServiceTest(TestCase):
     def setUp(self):
-        self.clear_cache()
+        super(WeitServiceTest, self).setUp()
         self.user = self.create_user('user')
 
     def test_get_user_weits(self):
