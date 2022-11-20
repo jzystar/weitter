@@ -2,7 +2,6 @@ from celery import shared_task
 from friendships.services import FriendshipServices
 from newsfeeds.models import NewsFeed
 from utils.time_constants import OHE_HOUR
-from weits.models import Weit
 from newsfeeds.constants import FANOUT_BATCH_SIZE
 
 
