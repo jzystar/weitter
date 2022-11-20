@@ -1,13 +1,11 @@
 from django.contrib.auth.models import User
 from django.utils.decorators import method_decorator
-from friendships.api.paginations import FriendshipPagination
 from friendships.api.serializers import (
     FollowerSerializer,
     FollowingSerializer,
     FriendshipSerializerForCreate,
 )
-from friendships.models import Friendship
-from friendships.hbase_models import HBaseFollowing, HBaseFollower
+from friendships.models import Friendship, HBaseFollowing, HBaseFollower
 from friendships.services import FriendshipServices
 from gatekeeper.models import GateKeeper
 from ratelimit.decorators import ratelimit
@@ -16,6 +14,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from utils.paginations import EndlessPagination
+
+
 
 class FriendshipViewSet(viewsets.GenericViewSet):
     queryset = User.objects.all()

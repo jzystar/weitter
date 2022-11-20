@@ -173,24 +173,37 @@ class HBaseModel:
         row_data = table.row(row_key)
         return cls.init_from_row(row_key, row_data)
 
-    def save(self):
+    def save(self, batch=None):
         """
         用类似django model的方式对实例对应的数据，进行保存修改
         """
         row_data = self.serialize_row_data(self.__dict__)
         if not row_data:
             raise EmptyColumnError("columns should not be empty")
-        table = self.get_table()
-        table.put(self.row_key, row_data)
+        if batch is not None:
+            batch.put(self.row_key, row_data)
+        else:
+            table = self.get_table()
+            table.put(self.row_key, row_data)
 
     @classmethod
-    def create(cls, **kwargs):
+    def create(cls, batch=None, **kwargs):
         """
         用类似django model的方式，以类方法创建一个实例，如XXXHBaseModel.create(a=x,b=y,c=z)
         """
         instance = cls(**kwargs)
-        instance.save()
+        instance.save(batch=batch)
         return instance
+
+    @classmethod
+    def batch_create(cls, batch_data):
+        table = cls.get_table()
+        batch = table.batch()
+        results = []
+        for data in batch_data:
+            results.append(cls.create(batch=batch, **data))
+        batch.send()
+        return results
 
     @classmethod
     def get_table_name(cls):

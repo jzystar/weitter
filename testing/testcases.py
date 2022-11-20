@@ -4,7 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import caches
 from django.test import TestCase as DjangoTestCase
 from django_hbase.models import HBaseModel
-from friendships.models import Friendship
 from friendships.services import FriendshipServices
 from gatekeeper.models import GateKeeper
 from likes.models import Like
@@ -38,7 +37,7 @@ class TestCase(DjangoTestCase):
         caches['testing'].clear()
         RedisClient.clear()
         # open hbase switch for friendship
-        GateKeeper.set_kv('switch_friendship_to_hbase', 'percent', 100)
+        # GateKeeper.set_kv('switch_friendship_to_hbase', 'percent', 100)
 
     @property
     def anonymous_client(self):

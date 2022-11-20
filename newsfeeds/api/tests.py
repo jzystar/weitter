@@ -5,10 +5,10 @@ from utils.paginations import EndlessPagination
 from django.conf import settings
 from newsfeeds.services import NewsFeedServices
 
-
 NEWSFEED_URL = '/api/newsfeeds/'
 FOLLOW_URL = '/api/friendships/{}/follow/'
 POST_WEITS_URL = '/api/weits/'
+
 
 class NewsFeedApiTests(TestCase):
 

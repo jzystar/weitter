@@ -118,7 +118,7 @@ class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     has_followed = serializers.SerializerMethodField()
 
     class Meta:
-        model = Friendship
+        models = Friendship
         fields = ('user', 'created_at', 'has_followed')
 
     def get_has_followed(self, obj):
@@ -132,7 +132,7 @@ class FollowingSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     has_followed = serializers.SerializerMethodField()
 
     class Meta:
-        model = Friendship
+        models = Friendship
         fields = ('user', 'created_at', 'has_followed')
 
     def get_has_followed(self, obj):
@@ -146,7 +146,7 @@ class FriendshipSerializerForCreate(serializers.ModelSerializer):
     to_user_id = serializers.IntegerField()
 
     class Meta:
-        model = Friendship
+        models = Friendship
         fields = ('from_user_id', 'to_user_id')
 
     def validate(self, attrs):
