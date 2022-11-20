@@ -12,7 +12,7 @@ class LikeSerializer(serializers.ModelSerializer):
     # so we can use 'source' instead
     # user = serializers.SerializerMethodField()
 
-    # use 'source', so we have to implement source property 'cached_user' in like models
+    # use 'source', so we have to implement source property 'cached_user' in like model
     user = UserSerializerForLike(source='cached_user')
 
 

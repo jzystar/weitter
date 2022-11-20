@@ -12,5 +12,5 @@ class DjangoModelSerializer:
 
     @classmethod
     def deserialize(cls, serialize_data):
-        # need to get .object for models object, because deserialize() return a DeserializedObject
+        # need to get .object for model object, because deserialize() return a DeserializedObject
         return list(serializers.deserialize('json', serialize_data))[0].object
