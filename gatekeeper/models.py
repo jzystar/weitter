@@ -27,6 +27,10 @@ class GateKeeper(object):
         conn.hset(name, key, value)
 
     @classmethod
+    def turn_on(cls, gk_name):
+        cls.set_kv(gk_name, 'percent', 100)
+
+    @classmethod
     def is_switch_on(cls, gk_name):
         """
         percent为100才算switch on

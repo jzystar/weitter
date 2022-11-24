@@ -7,7 +7,7 @@ from django_hbase.models import HBaseModel
 from friendships.services import FriendshipServices
 from gatekeeper.models import GateKeeper
 from likes.models import Like
-from newsfeeds.models import NewsFeed
+from newsfeeds.services import NewsFeedServices
 from rest_framework.test import APIClient
 from utils.redis_client import RedisClient
 from weits.models import Weit
@@ -36,8 +36,9 @@ class TestCase(DjangoTestCase):
     def clear_cache(self):
         caches['testing'].clear()
         RedisClient.clear()
-        # open hbase switch for friendship
-        # GateKeeper.set_kv('switch_friendship_to_hbase', 'percent', 100)
+        # open hbase switch for friendship and newsfeed
+        GateKeeper.turn_on('switch_friendship_to_hbase')
+        GateKeeper.turn_on('switch_newsfeed_to_hbase')
 
     @property
     def anonymous_client(self):
@@ -82,7 +83,11 @@ class TestCase(DjangoTestCase):
         return user, client
 
     def create_newsfeed(self, user, weit):
-        return NewsFeed.objects.create(user=user, weit=weit)
+        if GateKeeper.is_switch_on('switch_newsfeed_to_hbase'):
+            created_at = weit.timestamp
+        else:
+            created_at = weit.created_at
+        return NewsFeedServices.create(user_id=user.id, weit_id=weit.id, created_at=created_at)
 
     def create_friendship(self, from_user, to_user):
         return FriendshipServices.follow(from_user.id, to_user.id)
