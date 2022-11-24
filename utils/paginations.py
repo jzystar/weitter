@@ -18,7 +18,12 @@ class EndlessPagination(BasePagination):
 
     def paginate_ordered_list(self, reversed_ordered_list, request):
         if 'created_at__gt' in request.query_params:
-            created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            # 兼容iso和int格式的时间戳, TODO: 最好还是统一时间戳格式
+            try:
+                created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            except ValueError:
+                created_at__gt = int(request.query_params['created_at__gt'])
+
             objects = []
             for obj in reversed_ordered_list:
                 if obj.created_at > created_at__gt:
@@ -29,7 +34,10 @@ class EndlessPagination(BasePagination):
             return objects
         index = 0
         if 'created_at__lt' in request.query_params:
-            created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            try:
+                created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            except ValueError:
+                created_at__lt = int(request.query_params['created_at__lt'])
             for index, obj in enumerate(reversed_ordered_list):
                 if obj.created_at < created_at__lt:
                     break
@@ -117,7 +125,7 @@ class EndlessPagination(BasePagination):
 
             objects = hb_model.filter(start=start, stop=stop, limit=self.page_size + 2, reverse=True)
             if len(objects) and objects[0].created_at == int(created_at__lt):
-                objects = objects[1 : ]
+                objects = objects[1:]
             if len(objects) > self.page_size:
                 self.has_next_page = True
                 objects = objects[ : -1]

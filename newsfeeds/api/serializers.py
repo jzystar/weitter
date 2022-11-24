@@ -1,12 +1,19 @@
 from rest_framework import serializers
-from newsfeeds.models import NewsFeed
 from weits.api.serializers import WeitSerializer
 
 
-class NewsFeedSerializer(serializers.ModelSerializer):
-    weit = WeitSerializer(source='cached_weit')
-    
-    class Meta:
-        model = NewsFeed
-        fields = ('id', 'weit', 'created_at')
+class NewsFeedSerializer(serializers.Serializer):
+    weit = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
 
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+    
+    def get_weit(self, obj):
+        return WeitSerializer(obj.cached_weit, context=self.context).data
+
+    def get_created_at(self, obj):
+        return obj.created_at

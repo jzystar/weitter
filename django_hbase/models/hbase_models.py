@@ -2,6 +2,7 @@ from .exceptions import EmptyColumnError, BadRowKeyError
 from .fields import HBaseField, IntegerField, TimestampField
 from django.conf import settings
 from django_hbase.client import HBaseClient
+from utils.loggers import logger
 
 
 # 需要理解透cls，self 即类和实例之间区别，万物皆对象，cls和self是不同的对象，那么类属性和实例的属性则是分开的,
@@ -177,6 +178,7 @@ class HBaseModel:
         """
         用类似django model的方式对实例对应的数据，进行保存修改
         """
+
         row_data = self.serialize_row_data(self.__dict__)
         if not row_data:
             raise EmptyColumnError("columns should not be empty")
@@ -191,12 +193,19 @@ class HBaseModel:
         """
         用类似django model的方式，以类方法创建一个实例，如XXXHBaseModel.create(a=x,b=y,c=z)
         """
+        logger.info(f"Create cell in hbase table {cls.get_table_name()} with values {kwargs}")
         instance = cls(**kwargs)
         instance.save(batch=batch)
+        logger.info(f"Hbase created cell in table {cls.get_table_name()} with data: {instance}")
         return instance
 
     @classmethod
     def batch_create(cls, batch_data):
+        """
+        批量创建
+        """
+        logger.info(f"Batch create cell in hbase table {cls.get_table_name()} with batch data {batch_data}")
+
         table = cls.get_table()
         batch = table.batch()
         results = []
@@ -262,6 +271,14 @@ class HBaseModel:
         limit 最大返回数量
         是否反向scan，比如start=10, stop=1, reverse=True则从10到1反向返回值
         """
+        logger.info("filter table {}, start={}, stop={}, prefix={}, limit={}, reverse={}".format(
+            cls.get_table_name(),
+            start,
+            stop,
+            prefix,
+            limit,
+            reverse
+        ))
         row_start = cls.serialize_row_key_from_tuple(start)
         row_stop = cls.serialize_row_key_from_tuple(stop)
         row_prefix = cls.serialize_row_key_from_tuple(prefix)
@@ -274,6 +291,7 @@ class HBaseModel:
         for row_key, row_data in rows:
             instance = cls.init_from_row(row_key, row_data)
             results.append(instance)
+        logger.info(f"filter get results: {results}")
         return results
 
     @classmethod

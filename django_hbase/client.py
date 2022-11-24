@@ -8,8 +8,8 @@ class HBaseClient:
 
     @classmethod
     def get_connection(cls):
-        if cls._conn:
-            return cls._conn
+        # if cls._conn:
+        #     return cls._conn
         cls._conn = happybase.Connection(settings.HBASE_HOST)
         return cls._conn
 

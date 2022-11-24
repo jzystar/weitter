@@ -3,6 +3,12 @@ from weitter.cache import USER_WEITS_PATTERN
 from utils.redis_helper import RedisHelper
 
 
+def lazy_load_weits(user_id):
+    def _lazy_load(limit):
+        return Weit.objects.filter(user_id=user_id).order_by('-created_at')[:limit]
+    return _lazy_load
+
+
 class WeitService(object):
 
     @classmethod
@@ -21,15 +27,16 @@ class WeitService(object):
     @classmethod
     def get_cached_weits(cls, user_id):
         # queryset lazy loading, so we don't execute sql when we define the queryset
-        queryset = Weit.objects.filter(user_id=user_id).order_by('-created_at')
+        # queryset = Weit.objects.filter(user_id=user_id).order_by('-created_at')
+
         key = USER_WEITS_PATTERN.format(user_id=user_id)
-        return RedisHelper.load_objects(key, queryset)
+        return RedisHelper.load_objects(key, lazy_load_weits(user_id))
 
     @classmethod
     def push_weit_to_cache(cls, weit):
-        queryset = Weit.objects.filter(user_id=weit.user_id).order_by('-created_at')
+        # queryset = Weit.objects.filter(user_id=weit.user_id).order_by('-created_at')
         key = USER_WEITS_PATTERN.format(user_id=weit.user_id)
-        RedisHelper.push_object(key, weit, queryset)
+        RedisHelper.push_object(key, weit, lazy_load_weits(weit.user_id))
 
 
 

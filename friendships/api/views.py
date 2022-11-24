@@ -63,7 +63,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
                 'success': False,
                 'message': "Please check input",
                 'errors': [{
-                    'pk': f'You has followed user with id={pk}'
+                    'pk': f'You have followed user with id={pk}'
                 }],
             }, status=status.HTTP_400_BAD_REQUEST)
         '''

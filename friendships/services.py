@@ -4,6 +4,7 @@ from friendships.models import Friendship, HBaseFollowing, HBaseFollower
 from gatekeeper.models import GateKeeper
 from weitter.cache import FOLLOWINGS_PATTERN
 import time
+from utils.loggers import logger
 
 cache = caches['testing'] if settings.TESTING else caches['default']
 
@@ -29,6 +30,7 @@ class FriendshipServices(object):
     @classmethod
     def get_followers_id(cls, to_user_id):
         if GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+
             friendships = HBaseFollower.filter(prefix=(to_user_id, None))
         else:
             friendships = Friendship.objects.filter(to_user_id=to_user_id)
@@ -38,19 +40,21 @@ class FriendshipServices(object):
     def get_following_user_id_set(cls, from_user_id):
         # TODO: cache in redis set
         if GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            logger.info(f"get followings of user {from_user_id} from hbase ")
             friendships = HBaseFollowing.filter(prefix=(from_user_id, None))
         else:
+            logger.info(f"get followings of user {from_user_id} from mysql ")
             friendships = Friendship.objects.filter(from_user_id=from_user_id)
 
-        # key = FOLLOWINGS_PATTERN.format(user_id=from_user_id)
-        # user_id_set = cache.get(key)
-        # if user_id_set is not None:
-        #     return user_id_set
+        key = FOLLOWINGS_PATTERN.format(user_id=from_user_id)
+        user_id_set = cache.get(key)
+        if user_id_set is not None:
+            return user_id_set
         # friendships = Friendship.objects.filter(from_user_id=from_user_id)
         user_id_set = set([
             fs.to_user_id for fs in friendships
         ])
-        # cache.set(key, user_id_set)
+        cache.set(key, user_id_set)
         return user_id_set
 
     @classmethod
@@ -69,7 +73,6 @@ class FriendshipServices(object):
                 from_user_id=from_user_id,
                 to_user_id=to_user_id,
             )
-
         # create data in hbase
         now = int(time.time() * 1000000)
         HBaseFollower.create(
@@ -77,6 +80,8 @@ class FriendshipServices(object):
             to_user_id=to_user_id,
             created_at=now,
         )
+        # should flush cache manually for hbase
+        cls.invalidate_following_cache(from_user_id)
         # 在两张表中分别创建，因为数据相同，所以选择一个返回即可。
         return HBaseFollowing.create(
             from_user_id=from_user_id,
@@ -97,7 +102,8 @@ class FriendshipServices(object):
         instance = cls.get_follow_instance(from_user_id, to_user_id)
         if instance is None:
             return 0
-
+        # should flush cache manually for hbase
+        cls.invalidate_following_cache(from_user_id)
         HBaseFollowing.delete(from_user_id=from_user_id, created_at=instance.created_at)
         HBaseFollower.delete(to_user_id=to_user_id, created_at=instance.created_at)
         return 1
